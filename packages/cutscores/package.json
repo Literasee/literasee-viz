@@ -1,0 +1,15 @@
+{
+  "name": "cutscores-viz",
+  "version": "0.1.0",
+  "description": "D3 visualization of state assessment cutscores",
+  "scripts": {
+    "start": "browser-sync start --config bs-config.js",
+    "deploy": "surge -p src -d cutscores-viz.surge.sh"
+  },
+  "author": "Ben Clinkinbeard <ben.clinkinbeard@gmail.com> (http://benclinkinbeard.com/)",
+  "license": "ISC",
+  "devDependencies": {
+    "browser-sync": "2.15.0",
+    "surge": "0.18.0"
+  }
+}
