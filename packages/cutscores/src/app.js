@@ -6,32 +6,33 @@ var colors = ['#525252', '#737373', '#969696', '#BDBDBD', '#D9D9D9'];
 var queryParams = parseQueryString();
 var state = (queryParams.state || 'CO').toUpperCase();
 var subject = queryParams.subject;
-var minYear = queryParams['min-year'];
-var maxYear = queryParams['max-year'];
-
-function getDataBySubject (subject, data) {
-  if (!subject) subject = data[0].subject;
-
-  return data.filter(s => s.subject === subject);
-}
-
-function getDataForYears (minYear, maxYear, data) {
-  // default to most current cuts
-  if (!minYear && !maxYear) {
-    return _.sortBy(data, 'maxYear').reverse()[0];
-  }
-}
+var minYear = queryParams['min-year'] || 1900;
+var maxYear = queryParams['max-year'] || 2100;
 
 d3.json(
   `https://raw.githubusercontent.com/CenterForAssessment/cutscores/master/${state}.json`,
   function (err, data) {
     if (err) throw err;
 
-    var chartData = getDataForYears(
-      minYear,
-      maxYear,
-      getDataBySubject(subject, data.data)
-    );
+    var chartData = _
+      .chain(data.data)
+      .tap(function (arr) {
+        if (!subject) subject = arr[0].subject;
+      })
+      .filter(function (o) {
+        return o.subject === subject;
+      })
+      .filter(function (o) {
+        // if either param falls within the bounds of a set of cuts
+        if (minYear >= o.minYear && minYear <= o.maxYear) return true;
+        if (maxYear >= o.minYear && maxYear <= o.maxYear) return true;
+
+        if (minYear < o.minYear && maxYear >= o.minYear) return true;
+        if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
+      })
+      .sortBy(data, 'maxYear')
+      .last() // remove this when multiple sets of cuts are supported
+      .value();
 
     renderChart(chartData);
   }
