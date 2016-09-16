@@ -1,4 +1,4 @@
-var margin = { top: 10, right: 40, bottom: 60, left: 40 };
+var margin = { top: 0, right: 0, bottom: 20, left: 0 };
 var width = 800 - margin.left - margin.right;
 var height = 400 - margin.top - margin.bottom;
 var colors = ['#525252', '#737373', '#969696', '#BDBDBD', '#D9D9D9'];
@@ -60,14 +60,33 @@ function renderChart (data) {
   // svg.call(d3.axisLeft(yScale));
   // svg.append('g').attr('transform', `translate(${width}, 0)`).call(d3.axisRight(yScale));
 
-  var xScale = d3.scalePoint()
-    .domain(cut_scores.map(d => d.label))
+  // to create a "gutter" and prevent our min and max values from being plotted
+  // right on the edges of our chart, we need to create some fake data entries
+  // we will essentially find the min and max grades and create entries
+  // slightly below and above them, respectively
+
+  // 0 to 1, how much of a "grade" should the gutters represent?
+  var gutter = 0.25;
+  // convert labels like "Grade 3" to integer levels
+  _.forEach(cut_scores, d => d.level = parseInt(d.label.substr(-2), 10));
+  // duplicate the first item and put it at the front
+  cut_scores.unshift(_.clone(cut_scores[0]));
+  // decrease cloned item's level by gutter amount
+  cut_scores[0].level -= gutter;
+  // duplicate the last item and put it at the end
+  cut_scores.push(_.clone(cut_scores[cut_scores.length - 1]));
+  // increase cloned item's level by gutter amount
+  cut_scores[cut_scores.length - 1].level += gutter;
+
+  // create a linear X scale based on our constructed levels
+  var xScale = d3.scaleLinear()
+    .domain(d3.extent(_.map(cut_scores, 'level')))
     .range([0, width]);
 
+  // draw X axis below chart, prepending 'Grade ' to level value
   svg
-    .append('g')
-      .attr('transform', `translate(0, ${height})`)
-    .call(d3.axisBottom(xScale));
+    .append('g').attr('transform', `translate(0, ${height})`)
+    .call(d3.axisBottom(xScale).tickFormat(d => 'Grade ' + d).tickSizeOuter(0));
 
   // generate keys from data
   var keys = ['hoss'];
@@ -96,7 +115,7 @@ function renderChart (data) {
     });
 
   var area = d3.area()
-    .x(d => xScale(d.data.label))
+    .x(d => xScale(d.data.level))
     .y0(d => yScale(d[0]))
     .y1(d => yScale(d[1]))
     .curve(d3.curveCatmullRom.alpha(0.5));
