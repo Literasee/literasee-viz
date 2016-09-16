@@ -130,7 +130,7 @@ function renderChart (data) {
         d3.select(this)
           .select('path')
           .style('fill-opacity', 0.5)
-          .style('stroke', 'black');
+          .style('stroke-width', 0.8);
 
         d3.select(this)
           .select('text')
@@ -140,7 +140,7 @@ function renderChart (data) {
         d3.select(this)
           .select('path')
           .style('fill-opacity', 0.5)
-          .style('stroke', null);
+          .style('stroke-width', .1);
 
         d3.select(this)
           .select('text')
@@ -157,6 +157,8 @@ function renderChart (data) {
       return d3.scaleOrdinal(colors).domain(keys)(d.key);
     })
     .style('fill-opacity', 0.5)
+    .style('stroke', 'black')
+    .style('stroke-width', .1)
     .attr('d', area);
 
   bands
