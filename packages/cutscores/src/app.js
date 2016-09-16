@@ -122,21 +122,54 @@ function renderChart (data) {
 
   var bands = svg
     .selectAll('.layer')
-    .data(stack(cut_scores));
+    .data(stack(cut_scores))
+    .enter()
+      .append('g')
+      .attr('class', 'layer')
+      .on('mouseover', function () {
+        d3.select(this)
+          .select('path')
+          .style('fill-opacity', 0.5)
+          .style('stroke', 'black');
+
+        d3.select(this)
+          .select('text')
+          .style('fill-opacity', 1);
+      })
+      .on('mouseout', function () {
+        d3.select(this)
+          .select('path')
+          .style('fill-opacity', 0.5)
+          .style('stroke', null);
+
+        d3.select(this)
+          .select('text')
+          .style('fill-opacity', 0);
+      });
 
   // next line only needed if chart will be updated
   // bands.exit().remove();
 
   // chart is (currently) only rendered once, so everything happens in enter
   bands
-    .enter()
-      .append('path')
-      .attr('class', 'layer')
-      .style('fill', (d) => {
-        return d3.scaleOrdinal(colors).domain(keys)(d.key);
-      })
-      .style('fill-opacity', 0.5)
-      .attr('d', area);
+    .append('path')
+    .style('fill', (d) => {
+      return d3.scaleOrdinal(colors).domain(keys)(d.key);
+    })
+    .style('fill-opacity', 0.5)
+    .attr('d', area);
+
+  bands
+    .append('text')
+    .attr('font-size', 11)
+    .attr('font-family', 'sans-serif')
+    .attr('x', 5)
+    .attr('y', (d, i) => {
+      return yScale(d[0][1]);
+    })
+    .attr('dy', '1.2em')
+    .style('fill-opacity', 0)
+    .text((d, i) => data.labels[i].label);
 
   // next line only needed if chart will be updated
   // bands.attr('d', area);
