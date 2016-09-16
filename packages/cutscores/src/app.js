@@ -39,6 +39,10 @@ d3.json(
 );
 
 function renderChart (data) {
+  var cut_scores = data.cuts;
+  var numLevels = data.labels.length;
+
+  // base with margins
   var svg = d3.select('#chart')
     .append('svg')
       .attr('width', width + margin.left + margin.right)
@@ -47,17 +51,14 @@ function renderChart (data) {
     .append('g')
       .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-  var cut_scores = data.cuts;
-  var numLevels = data.labels.length;
+  // chart runs from loss to hoss
   var yScale = d3.scaleLinear()
     .domain([d3.min(cut_scores, n => n.loss), d3.max(cut_scores, n => n.hoss)])
     .range([height, 0]);
 
-  svg.call(d3.axisLeft(yScale));
-  svg
-    .append('g')
-      .attr('transform', `translate(${width}, 0)`)
-    .call(d3.axisRight(yScale));
+  // Y axes, for debugging only
+  // svg.call(d3.axisLeft(yScale));
+  // svg.append('g').attr('transform', `translate(${width}, 0)`).call(d3.axisRight(yScale));
 
   var xScale = d3.scalePoint()
     .domain(cut_scores.map(d => d.label))
@@ -66,26 +67,29 @@ function renderChart (data) {
   svg
     .append('g')
       .attr('transform', `translate(0, ${height})`)
-    .call(d3.axisBottom(xScale).ticks(5));
+    .call(d3.axisBottom(xScale));
 
+  // generate keys from data
   var keys = ['hoss'];
   for (var i = numLevels - 1; i > 0; i--) {
     keys.unshift('cut' + i);
   }
-  var z = d3.scaleOrdinal(colors).domain(keys);
 
+  // generate state by calculating diffs between cuts
   var stack = d3.stack()
     .keys(keys)
     .offset((series, order) => {
       for (var i = series.length - 1; i > -1; i--) {
         for (var j = 0; j < series[i].length; j++) {
-
+          // bottom band runs from loss to cut1
+          // others run from prev cut
           if (i === 0) {
             series[i][j][0] = yScale.domain()[0];
           } else {
             series[i][j][0] = series[i - 1][j][1];
           }
-          // top band fills chart area
+
+          // top band runs from last cut to hoss to fill chart area
           if (i === series.length - 1) series[i][j][1] = yScale.domain()[1];
         }
       }
@@ -101,19 +105,23 @@ function renderChart (data) {
     .selectAll('.layer')
     .data(stack(cut_scores));
 
-  // basic update, no transitions
-  bands.exit().remove();
+  // next line only needed if chart will be updated
+  // bands.exit().remove();
+
+  // chart is (currently) only rendered once, so everything happens in enter
   bands
     .enter()
       .append('path')
       .attr('class', 'layer')
       .style('fill', (d) => {
-        return z(d.key);
+        return d3.scaleOrdinal(colors).domain(keys)(d.key);
       })
       .style('fill-opacity', 0.5)
       .attr('d', area);
-  bands
-    .attr('d', area);
 
+  // next line only needed if chart will be updated
+  // bands.attr('d', area);
+
+  // when running in an iframe, alert parent of new size
   new pym.Child().sendHeight();
 }
