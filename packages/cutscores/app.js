@@ -42,6 +42,7 @@ function renderChart (data) {
   var cut_scores = data.cuts;
   var numLevels = data.labels.length;
 
+  console.log(d3.select('#chart'));
   // base with margins
   var svg = d3.select('#chart')
     .append('svg')
