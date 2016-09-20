@@ -1,7 +1,8 @@
 module.exports = {
-  'server': 'docs',
+  'server': '.',
   'files': [
-    'docs/**'
+    'index.html',
+    'app.js'
   ],
   'ui': false,
   'notify': false
