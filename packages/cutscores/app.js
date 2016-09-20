@@ -9,40 +9,43 @@ var subject = queryParams.subject;
 var minYear = queryParams['min-year'] || 1900;
 var maxYear = queryParams['max-year'] || 2100;
 
-d3.json(
-  `https://literasee.github.io/cutscores/${state}.json`,
-  function (err, data) {
-    if (err) throw err;
+document.addEventListener('DOMContentLoaded', loadData);
 
-    var chartData = _
-      .chain(data.data)
-      .tap(function (arr) {
-        if (!subject) subject = arr[0].subject;
-      })
-      .filter(function (o) {
-        return o.subject === subject;
-      })
-      .filter(function (o) {
-        // if either param falls within the bounds of a set of cuts
-        if (minYear >= o.minYear && minYear <= o.maxYear) return true;
-        if (maxYear >= o.minYear && maxYear <= o.maxYear) return true;
+function loadData () {
+  d3.json(
+    `https://literasee.github.io/cutscores/${state}.json`,
+    function (err, data) {
+      if (err) throw err;
 
-        if (minYear < o.minYear && maxYear >= o.minYear) return true;
-        if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
-      })
-      .sortBy(data, 'maxYear')
-      .last() // remove this when multiple sets of cuts are supported
-      .value();
+      var chartData = _
+        .chain(data.data)
+        .tap(function (arr) {
+          if (!subject) subject = arr[0].subject;
+        })
+        .filter(function (o) {
+          return o.subject === subject;
+        })
+        .filter(function (o) {
+          // if either param falls within the bounds of a set of cuts
+          if (minYear >= o.minYear && minYear <= o.maxYear) return true;
+          if (maxYear >= o.minYear && maxYear <= o.maxYear) return true;
 
-    renderChart(chartData);
-  }
-);
+          if (minYear < o.minYear && maxYear >= o.minYear) return true;
+          if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
+        })
+        .sortBy(data, 'maxYear')
+        .last() // remove this when multiple sets of cuts are supported
+        .value();
+
+      renderChart(chartData);
+    }
+  );
+}
 
 function renderChart (data) {
   var cut_scores = data.cuts;
   var numLevels = data.labels.length;
 
-  console.log(d3.select('#chart'));
   // base with margins
   var svg = d3.select('#chart')
     .append('svg')
