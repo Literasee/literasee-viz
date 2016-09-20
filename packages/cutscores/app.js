@@ -67,8 +67,8 @@ function renderChart (data) {
 
   // 0 to 1, how much of a "grade" should the gutters represent?
   var gutter = 0.25;
-  // convert labels like "Grade 3" to integer levels
-  _.forEach(cut_scores, d => d.level = parseInt(d.label.substr(-2), 10));
+  // use position in the cuts array to represent level over time
+  _.forEach(cut_scores, (d, i) => d.level = i);
   // duplicate the first item and put it at the front
   cut_scores.unshift(_.clone(cut_scores[0]));
   // decrease cloned item's level by gutter amount
@@ -83,10 +83,20 @@ function renderChart (data) {
     .domain(d3.extent(_.map(cut_scores, 'level')))
     .range([0, width]);
 
+  // create an X axis using the original length of cut_scores as number of ticks
+  var xAxis = d3.axisBottom(xScale)
+    .ticks(cut_scores.length - 2)
+    .tickFormat((d, i) => {
+      // use the actual label field for tick labels
+      // +1 skips the fake data point we created at the front of the array
+      return cut_scores[i+1].label;
+    })
+    .tickSizeOuter(0);
+
   // draw X axis below chart, prepending 'Grade ' to level value
   svg
     .append('g').attr('transform', `translate(0, ${height})`)
-    .call(d3.axisBottom(xScale).tickFormat(d => 'Grade ' + d).tickSizeOuter(0));
+    .call(xAxis);
 
   // generate keys from data
   var keys = ['hoss'];
