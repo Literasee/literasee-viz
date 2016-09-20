@@ -1,7 +1,7 @@
 module.exports = {
-  'server': 'src',
+  'server': 'docs',
   'files': [
-    'src/**'
+    'docs/**'
   ],
   'ui': false,
   'notify': false
