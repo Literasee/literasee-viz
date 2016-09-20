@@ -179,5 +179,5 @@ function renderChart (data) {
   // bands.attr('d', area);
 
   // when running in an iframe, alert parent of new size
-  new pym.Child().sendHeight();
+  if (window['pym']) new pym.Child().sendHeight();
 }
