@@ -167,9 +167,11 @@ function renderChart (data) {
     .attr('font-family', 'sans-serif')
     .attr('x', 5)
     .attr('y', (d, i) => {
-      return yScale(d[0][1]);
+      var datum = d[0]; // datum[0] is the bottom value, datum[1] the top
+      var mid = datum[0] + ((datum[1] - datum[0]) / 2)
+      return yScale(mid);
     })
-    .attr('dy', '1.2em')
+    .attr('dy', '0.4em')
     .style('fill-opacity', 0)
     .text((d, i) => data.labels[i].label);
 
