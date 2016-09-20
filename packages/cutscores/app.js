@@ -10,7 +10,7 @@ var minYear = queryParams['min-year'] || 1900;
 var maxYear = queryParams['max-year'] || 2100;
 
 d3.json(
-  `https://raw.githubusercontent.com/CenterForAssessment/cutscores/master/${state}.json`,
+  `https://literasee.github.io/cutscores/${state}.json`,
   function (err, data) {
     if (err) throw err;
 
