@@ -9,38 +9,34 @@ var subject = queryParams.subject;
 var minYear = queryParams['min-year'] || 1900;
 var maxYear = queryParams['max-year'] || 2100;
 
-document.addEventListener('DOMContentLoaded', loadData);
+d3.json(
+  `https://literasee.github.io/cutscores/${state}.json`,
+  function (err, data) {
+    if (err) throw err;
 
-function loadData () {
-  d3.json(
-    `https://literasee.github.io/cutscores/${state}.json`,
-    function (err, data) {
-      if (err) throw err;
+    var chartData = _
+      .chain(data.data)
+      .tap(function (arr) {
+        if (!subject) subject = arr[0].subject;
+      })
+      .filter(function (o) {
+        return o.subject === subject;
+      })
+      .filter(function (o) {
+        // if either param falls within the bounds of a set of cuts
+        if (minYear >= o.minYear && minYear <= o.maxYear) return true;
+        if (maxYear >= o.minYear && maxYear <= o.maxYear) return true;
 
-      var chartData = _
-        .chain(data.data)
-        .tap(function (arr) {
-          if (!subject) subject = arr[0].subject;
-        })
-        .filter(function (o) {
-          return o.subject === subject;
-        })
-        .filter(function (o) {
-          // if either param falls within the bounds of a set of cuts
-          if (minYear >= o.minYear && minYear <= o.maxYear) return true;
-          if (maxYear >= o.minYear && maxYear <= o.maxYear) return true;
+        if (minYear < o.minYear && maxYear >= o.minYear) return true;
+        if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
+      })
+      .sortBy(data, 'maxYear')
+      .last() // remove this when multiple sets of cuts are supported
+      .value();
 
-          if (minYear < o.minYear && maxYear >= o.minYear) return true;
-          if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
-        })
-        .sortBy(data, 'maxYear')
-        .last() // remove this when multiple sets of cuts are supported
-        .value();
-
-      renderChart(chartData);
-    }
-  );
-}
+    renderChart(chartData);
+  }
+);
 
 function renderChart (data) {
   var cut_scores = data.cuts;
