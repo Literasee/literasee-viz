@@ -93,7 +93,7 @@ function renderChart (data) {
     })
     .tickSizeOuter(0);
 
-  // draw X axis below chart, prepending 'Grade ' to level value
+  // draw X axis below chart
   svg
     .append('g').attr('transform', `translate(0, ${height})`)
     .call(xAxis);
@@ -177,8 +177,9 @@ function renderChart (data) {
     .attr('font-family', 'sans-serif')
     .attr('x', 5)
     .attr('y', (d, i) => {
-      var datum = d[0]; // datum[0] is the bottom value, datum[1] the top
-      var mid = datum[0] + ((datum[1] - datum[0]) / 2)
+      var datum = d[0];
+      // datum[0] is the bottom value, datum[1] the top
+      var mid = datum[0] + ((datum[1] - datum[0]) / 2);
       return yScale(mid);
     })
     .attr('dy', '0.4em')
@@ -188,6 +189,6 @@ function renderChart (data) {
   // next line only needed if chart will be updated
   // bands.attr('d', area);
 
-  // when running in an iframe, alert parent of new size
-  if (window['pym']) new pym.Child().sendHeight();
+  // alert parent of new size
+  new pym.Child().sendHeight();
 }
