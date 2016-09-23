@@ -1,49 +1,90 @@
-var margin = { top: 0, right: 0, bottom: 20, left: 0 };
-var width = 800 - margin.left - margin.right;
-var height = 400 - margin.top - margin.bottom;
-var colors = ['#525252', '#737373', '#969696', '#BDBDBD', '#D9D9D9'];
+import { parse } from 'query-string';
 
-var queryParams = parseQueryString();
-var state = (queryParams.state || 'CO').toUpperCase();
-var subject = queryParams.subject;
-var minYear = queryParams['min-year'] || 1900;
-var maxYear = queryParams['max-year'] || 2100;
+// convert kebab-case names from URL or HTML attrs to camelCase
+function camelize (o) {
+  var out = {};
+  Object.keys(o).forEach(key => out[_.camelCase(key)] = o[key]);
+  return out;
+}
 
-d3.json(
-  `https://literasee.github.io/cutscores/${state}.json`,
-  function (err, data) {
-    if (err) throw err;
+// create an object with camelCase keys from the attributes on a DOM element
+function getAttrs (selection) {
+  if (selection.empty() || !selection.node().hasAttributes()) return {};
 
-    var chartData = _
-      .chain(data.data)
-      .tap(function (arr) {
-        if (!subject) subject = arr[0].subject;
-      })
-      .filter(function (o) {
-        return o.subject === subject;
-      })
-      .filter(function (o) {
-        // if either param falls within the bounds of a set of cuts
-        if (minYear >= o.minYear && minYear <= o.maxYear) return true;
-        if (maxYear >= o.minYear && maxYear <= o.maxYear) return true;
-
-        if (minYear < o.minYear && maxYear >= o.minYear) return true;
-        if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
-      })
-      .sortBy(data, 'maxYear')
-      .last() // remove this when multiple sets of cuts are supported
-      .value();
-
-    renderChart(chartData);
+  var attrs = selection.node().attributes;
+  var o = {};
+  for (var i = attrs.length - 1; i > -1; i--) {
+    var { name, value } = attrs[i];
+    if (name.substr(0, 5) === 'data-') name = name.substr(5);
+    o[name] = value;
   }
-);
+  return camelize(o);
+}
 
-function renderChart (data) {
+export default function (selector = 'body', args) {
+  let container = d3.select(selector);
+  let attrs = getAttrs(container);
+  let urlVars = camelize(parse(location.search));
+
+  // get options using the following priority order:
+  // 1. args passed in the function call
+  // 2. data-* attributes set on target DOM elements
+  // 3. URL querystring values
+  // 4. defaults defined below
+  let {
+    state = 'CO',
+    subject, // default subject is whatever is listed first in the data
+    minYear = 1900,
+    maxYear = 2100
+  } = _.defaults(args, attrs, urlVars);
+
+  // options clean up
+  state = state.toUpperCase();
+  minYear = parseInt(minYear, 10);
+  maxYear = parseInt(maxYear, 10);
+
+  // load, parse, and filter data
+  d3.json(
+    `https://literasee.github.io/cutscores/${state}.json`,
+    function (err, data) {
+      if (err) throw err;
+
+      var chartData = _
+        .chain(data.data)
+        .tap(function (arr) {
+          if (!subject) subject = arr[0].subject;
+        })
+        .filter(function (o) {
+          return o.subject === subject;
+        })
+        .filter(function (o) {
+          // if either param falls within the bounds of a set of cuts
+          if (minYear >= o.minYear && minYear <= o.maxYear) return true;
+          if (maxYear >= o.minYear && maxYear <= o.maxYear) return true;
+
+          if (minYear < o.minYear && maxYear >= o.minYear) return true;
+          if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
+        })
+        .sortBy(data, 'maxYear')
+        .last() // remove this when multiple sets of cuts are supported
+        .value();
+
+      renderChart(chartData, container);
+    }
+  );
+}
+
+function renderChart (data, container) {
+  var margin = { top: 0, right: 0, bottom: 20, left: 0 };
+  var width = 800 - margin.left - margin.right;
+  var height = 400 - margin.top - margin.bottom;
+  var colors = ['#525252', '#737373', '#969696', '#BDBDBD', '#D9D9D9'];
+
   var cut_scores = data.cuts;
   var numLevels = data.labels.length;
 
   // base with margins
-  var svg = d3.select('#chart')
+  var svg = container
     .append('svg')
       .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
@@ -190,5 +231,29 @@ function renderChart (data) {
   // bands.attr('d', area);
 
   // alert parent of new size
-  new pym.Child().sendHeight();
+  if (window['pym']) new pym.Child().sendHeight();
+}
+
+// make a chart responsive
+function responsivefy(svg) {
+  // get container + svg aspect ratio
+  var container = d3.select(svg.node().parentNode),
+      width = parseInt(svg.style("width")),
+      height = parseInt(svg.style("height")),
+      aspect = width / height;
+
+  // add viewBox and preserveAspectRatio properties,
+  // and call resize so that svg resizes on inital page load
+  svg.attr("viewBox", "0 0 " + width + " " + height)
+      .attr("preserveAspectRatio", "xMinYMid")
+      .call(resize);
+
+  d3.select(window).on("resize." + container.attr("id"), resize);
+
+  // get width of container and resize svg to fit it
+  function resize() {
+      var targetWidth = parseInt(container.style("width"));
+      svg.attr("width", targetWidth);
+      svg.attr("height", Math.round(targetWidth / aspect));
+  }
 }

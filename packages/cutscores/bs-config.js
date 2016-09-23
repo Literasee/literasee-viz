@@ -1,9 +1,9 @@
 module.exports = {
-  'server': '.',
-  'files': [
-    'index.html',
-    'app.js'
+  server: '.',
+  files: [
+    '*.html',
+    'src/*'
   ],
-  'ui': false,
-  'notify': false
+  ui: false,
+  notify: false
 };

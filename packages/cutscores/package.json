@@ -2,12 +2,41 @@
   "name": "cutscores-viz",
   "version": "0.1.0",
   "description": "D3 visualization of state assessment cutscores",
-  "scripts": {
-    "start": "browser-sync start --config bs-config.js"
-  },
+  "keywords": [
+    "d3",
+    "d3-module"
+  ],
+  "homepage": "https://github.com/Literasee/cutscores-viz",
+  "license": "Apache-2.0",
   "author": "Ben Clinkinbeard <ben.clinkinbeard@gmail.com> (http://benclinkinbeard.com/)",
-  "license": "ISC",
+  "main": "build/$npm_package_config_filename.js",
+  "module": "index",
+  "jsnext:main": "index",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Literasee/cutscores-viz.git"
+  },
+  "scripts": {
+    "clean": "rm -rf build && mkdir build",
+    "build": "rollup -c -o build/$npm_package_name.js",
+    "watch": "npm run build -- -w",
+    "minify": "uglifyjs build/$npm_package_name.js -c -m -o build/$npm_package_name.min.js",
+    "bs": "browser-sync start --config bs-config.js",
+    "start": "npm run build && run-p watch bs",
+    "prepublish": "npm run clean && npm run build && npm run minify",
+    "postpublish": "zip -j build/$npm_package_name.zip -- LICENSE README.md build/*"
+  },
   "devDependencies": {
-    "browser-sync": "2.15.0"
+    "browser-sync": "2.15.0",
+    "npm-run-all": "3.1.0",
+    "rollup": "0.36.0",
+    "rollup-plugin-buble": "0.14.0",
+    "rollup-plugin-commonjs": "5.0.4",
+    "rollup-plugin-node-resolve": "2.0.0",
+    "rollup-watch": "2.5.0"
+  },
+  "dependencies": {
+    "lodash": "4.16.1",
+    "query-string": "4.2.3"
   }
 }
