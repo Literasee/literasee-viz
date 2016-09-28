@@ -1,0 +1,101 @@
+{
+  "metadata": {
+
+   },
+  "data": [
+    {
+      "subject": "ela",
+      "subjectLabel": "English Language Arts",
+      "minYear": 2008,
+      "maxYear": 2014,
+      "verticalScale": true,
+      "levels": [
+        { "label": "Unsatisfactory",       "proficient": false },
+        { "label": "Partially Proficient", "proficient": false },
+        { "label": "Proficient",           "proficient": true  },
+        { "label": "Advanced",             "proficient": true  }
+      ],
+      "cuts": [
+        { "test": "Grade 3",  "loss": 150, "cut1": 466, "cut1_label": "466", "cut2": 526, "cut2_label": "526", "cut3": 656, "cut3_label": "656", "hoss": 795 },
+        { "test": "Grade 4",  "loss": 180, "cut1": 517, "cut1_label": "517", "cut2": 572, "cut2_label": "572", "cut3": 671, "cut3_label": "671", "hoss": 940 },
+        { "test": "Grade 5",  "loss": 220, "cut1": 538, "cut1_label": "538", "cut2": 588, "cut2_label": "588", "cut3": 691, "cut3_label": "691", "hoss": 955 },
+        { "test": "Grade 6",  "loss": 260, "cut1": 543, "cut1_label": "543", "cut2": 600, "cut2_label": "600", "cut3": 696, "cut3_label": "696", "hoss": 970 },
+        { "test": "Grade 7",  "loss": 300, "cut1": 567, "cut1_label": "567", "cut2": 620, "cut2_label": "620", "cut3": 716, "cut3_label": "716", "hoss": 980 },
+        { "test": "Grade 8",  "loss": 330, "cut1": 578, "cut1_label": "578", "cut2": 632, "cut2_label": "632", "cut3": 724, "cut3_label": "724", "hoss": 990 },
+        { "test": "Grade 9",  "loss": 350, "cut1": 585, "cut1_label": "585", "cut2": 642, "cut2_label": "642", "cut3": 739, "cut3_label": "739", "hoss": 995 },
+        { "test": "Grade 10", "loss": 370, "cut1": 607, "cut1_label": "607", "cut2": 663, "cut2_label": "663", "cut3": 747, "cut3_label": "747", "hoss": 999 }
+      ]
+    },
+    {
+      "subject": "ela",
+      "subjectLabel": "English Language Arts",
+      "minYear": 2015,
+      "maxYear": 2100,
+      "verticalScale": false,
+      "levels": [
+        { "label": "Level 1", "proficient": false },
+        { "label": "Level 2", "proficient": false },
+        { "label": "Level 3", "proficient": false },
+        { "label": "Level 4", "proficient": true  },
+        { "label": "Level 5", "proficient": true  }
+      ],
+      "cuts": [
+        { "test": "Grade 3",  "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "810", "hoss": 500 },
+        { "test": "Grade 4",  "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "790", "hoss": 500 },
+        { "test": "Grade 5",  "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "799", "hoss": 500 },
+        { "test": "Grade 6",  "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "790", "hoss": 500 },
+        { "test": "Grade 7",  "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "785", "hoss": 500 },
+        { "test": "Grade 8",  "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "794", "hoss": 500 },
+        { "test": "Grade 9",  "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "791", "hoss": 500 },
+        { "test": "Grade 10", "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "750", "hoss": 500 },
+        { "test": "Grade 11", "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "750", "hoss": 500 }
+      ]
+    },
+    {
+      "subject": "mathematics",
+      "subjectLabel": "Mathematics",
+      "minYear": 2008,
+      "maxYear": 2014,
+      "verticalScale": true,
+      "levels": [
+        { "label": "Unsatisfactory",       "proficient": false },
+        { "label": "Partially Proficient", "proficient": false },
+        { "label": "Proficient",           "proficient": true  },
+        { "label": "Advanced",             "proficient": true  }
+      ],
+      "cuts": [
+        { "test": "Grade 3",  "loss": 150, "cut1": 335, "cut1_label": "335", "cut2": 419, "cut2_label": "419", "cut3": 510, "cut3_label": "510", "hoss": 700 },
+        { "test": "Grade 4",  "loss": 180, "cut1": 383, "cut1_label": "383", "cut2": 455, "cut2_label": "455", "cut3": 538, "cut3_label": "538", "hoss": 780 },
+        { "test": "Grade 5",  "loss": 220, "cut1": 422, "cut1_label": "422", "cut2": 494, "cut2_label": "494", "cut3": 562, "cut3_label": "562", "hoss": 800 },
+        { "test": "Grade 6",  "loss": 240, "cut1": 454, "cut1_label": "454", "cut2": 520, "cut2_label": "520", "cut3": 589, "cut3_label": "589", "hoss": 830 },
+        { "test": "Grade 7",  "loss": 280, "cut1": 487, "cut1_label": "487", "cut2": 559, "cut2_label": "559", "cut3": 614, "cut3_label": "614", "hoss": 860 },
+        { "test": "Grade 8",  "loss": 310, "cut1": 521, "cut1_label": "521", "cut2": 577, "cut2_label": "577", "cut3": 628, "cut3_label": "628", "hoss": 890 },
+        { "test": "Grade 9",  "loss": 340, "cut1": 548, "cut1_label": "548", "cut2": 602, "cut2_label": "602", "cut3": 652, "cut3_label": "652", "hoss": 920 },
+        { "test": "Grade 10", "loss": 370, "cut1": 562, "cut1_label": "562", "cut2": 627, "cut2_label": "627", "cut3": 692, "cut3_label": "692", "hoss": 950 }
+      ]
+    },
+    {
+      "subject": "mathematics",
+      "subjectLabel": "Mathematics",
+      "minYear": 2015,
+      "maxYear": 2100,
+      "verticalScale": false,
+      "levels": [
+        { "label": "Level 1", "proficient": false },
+        { "label": "Level 2", "proficient": false },
+        { "label": "Level 3", "proficient": false },
+        { "label": "Level 4", "proficient": true  },
+        { "label": "Level 5", "proficient": true  }
+      ],
+      "cuts": [
+        { "test": "Grade 3",   "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "790", "hoss": 500 },
+        { "test": "Grade 4",   "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "790", "hoss": 500 },
+        { "test": "Grade 5",   "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "790", "hoss": 500 },
+        { "test": "Grade 6",   "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "790", "hoss": 500 },
+        { "test": "Grade 7",   "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "790", "hoss": 500 },
+        { "test": "Grade 8",   "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "790", "hoss": 500 },
+        { "test": "Algebra I", "loss": 0, "cut1": 100, "cut1_label": "700", "cut2": 200, "cut2_label": "725", "cut3": 300, "cut3_label": "750", "cut4": 400, "cut4_label": "790", "hoss": 500 }
+      ]
+    }
+  ]
+ }

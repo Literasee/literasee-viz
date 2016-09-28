@@ -17,6 +17,7 @@
     "url": "git+https://github.com/Literasee/cutscores-viz.git"
   },
   "scripts": {
+    "test": "ava --require reify",
     "clean": "rm -rf build && mkdir build",
     "build": "rollup -c -o build/$npm_package_name.js",
     "watch": "npm run build -- -w",
@@ -27,8 +28,10 @@
     "postpublish": "zip -j build/$npm_package_name.zip -- LICENSE README.md build/*"
   },
   "devDependencies": {
+    "ava": "0.16.0",
     "browser-sync": "2.15.0",
     "npm-run-all": "3.1.0",
+    "reify": "0.3.8",
     "rollup": "0.36.0",
     "rollup-plugin-buble": "0.14.0",
     "rollup-plugin-commonjs": "5.0.4",
@@ -37,7 +40,7 @@
     "uglify-js": "2.7.3"
   },
   "dependencies": {
-    "lodash": "4.16.1",
+    "lodash": "4.16.2",
     "query-string": "4.2.3"
   }
 }

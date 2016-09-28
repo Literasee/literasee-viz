@@ -1,0 +1,40 @@
+{
+  "metadata": {
+
+  },
+  "data": {
+    "state": "CO",
+    "scores": [
+      {
+        "test": "Grade 4",
+        "score": 475,
+        "scoreTransformed": null,
+        "subject": "mathematics",
+        "subjectLabel": "Mathematics",
+        "year": 2009,
+        "sgp": null,
+        "sgpLevel": null
+      },
+      {
+        "test": "Grade 7",
+        "score": 518,
+        "scoreTransformed": null,
+        "subject": "mathematics",
+        "subjectLabel": "Mathematics",
+        "year": 2012,
+        "sgp": 68,
+        "sgpLevel": "high"
+      },
+      {
+        "test": "Grade 9",
+        "score": 541,
+        "scoreTransformed": null,
+        "subject": "mathematics",
+        "subjectLabel": "Mathematics",
+        "year": 2013,
+        "sgp": 68,
+        "sgpLevel": "high"
+      }
+    ]
+  }
+}
