@@ -48,19 +48,22 @@ export default function (selector = 'body', args) {
   // load, parse, and filter data
   let stateData;
   let studentData;
+  let base = window.location.hostname === 'localhost'
+    ? 'http://localhost:4000'
+    : 'https://literasee.github.io/cutscores';
 
   d3.json(
-    `https://literasee.github.io/cutscores/sgp/${state}.json`,
+    `${base}/sgp/${state}.json`,
     (err, data) => {
       stateData = filterStateData(data);
 
       if (student) {
         d3.json(
-          `https://literasee.github.io/cutscores/students/${student}.json`,
+          `${base}/students/${student}.json`,
           (err, data) => {
             studentData = data;
-            stateData.cuts = customizeCuts(stateData.cuts, studentData.data.scores);
-            renderChart(stateData, container, studentData);
+            stateData.cuts = customizeCuts(stateData.cuts, studentData.data.subjects[subject]);
+            renderChart(stateData, container, studentData.data.subjects[subject]);
           }
         )
       } else {
@@ -94,7 +97,7 @@ export default function (selector = 'body', args) {
   }
 }
 
-function renderChart (data, container, studentData) {
+function renderChart (data, container, scores) {
   var margin = { top: 0, right: 0, bottom: 20, left: 0 };
   var width = 800 - margin.left - margin.right;
   var height = 400 - margin.top - margin.bottom;
@@ -254,11 +257,11 @@ function renderChart (data, container, studentData) {
 
   // alert parent of new size
   if (window['pym']) new pym.Child().sendHeight();
-  if (!studentData) return;
+  if (!scores) return;
 
   svg
     .selectAll('circle')
-    .data(studentData.data.scores)
+    .data(scores)
     .enter()
     .append('circle')
       .attr('r', 10)
@@ -267,7 +270,7 @@ function renderChart (data, container, studentData) {
       })
       .attr('cy', (d, i) => yScale(d.score))
       .style('fill', 'red')
-      .style('fill-opacity', 0.4)
+      .style('fill-opacity', 0.4);
 }
 
 // make a chart responsive

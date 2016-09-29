@@ -22,7 +22,7 @@
     "build": "rollup -c -o build/$npm_package_name.js",
     "watch": "npm run build -- -w",
     "minify": "uglifyjs build/$npm_package_name.js -c -m -o build/$npm_package_name.min.js",
-    "bs": "browser-sync start --config bs-config.js",
+    "bs": "browser-sync start -c bs-config.js",
     "start": "npm run build && run-p watch bs",
     "prepublish": "npm run clean && npm run build && npm run minify",
     "postpublish": "zip -j build/$npm_package_name.zip -- LICENSE README.md build/*"
