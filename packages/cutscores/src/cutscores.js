@@ -1,4 +1,5 @@
 import { parse } from 'query-string';
+import { customizeCuts } from './utils';
 
 // convert kebab-case names from URL or HTML attrs to camelCase
 function camelize (o) {
@@ -35,7 +36,8 @@ export default function (selector = 'body', args) {
     state = 'CO',
     subject, // default subject is whatever is listed first in the data
     minYear = 1900,
-    maxYear = 2100
+    maxYear = 2100,
+    student
   } = _.defaults(args, attrs, urlVars);
 
   // options clean up
@@ -44,44 +46,62 @@ export default function (selector = 'body', args) {
   maxYear = parseInt(maxYear, 10);
 
   // load, parse, and filter data
+  let stateData;
+  let studentData;
+
   d3.json(
-    `https://literasee.github.io/cutscores/${state}.json`,
-    function (err, data) {
-      if (err) throw err;
+    `https://literasee.github.io/cutscores/sgp/${state}.json`,
+    (err, data) => {
+      stateData = filterStateData(data);
 
-      var chartData = _
-        .chain(data.data)
-        .tap(function (arr) {
-          if (!subject) subject = arr[0].subject;
-        })
-        .filter(function (o) {
-          return o.subject === subject;
-        })
-        .filter(function (o) {
-          // if either param falls within the bounds of a set of cuts
-          if (minYear >= o.minYear && minYear <= o.maxYear) return true;
-          if (maxYear >= o.minYear && maxYear <= o.maxYear) return true;
-
-          if (minYear < o.minYear && maxYear >= o.minYear) return true;
-          if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
-        })
-        .sortBy(data, 'maxYear')
-        .last() // remove this when multiple sets of cuts are supported
-        .value();
-
-      renderChart(chartData, container);
+      if (student) {
+        d3.json(
+          `https://literasee.github.io/cutscores/students/${student}.json`,
+          (err, data) => {
+            studentData = data;
+            stateData.cuts = customizeCuts(stateData.cuts, studentData.data.scores);
+            renderChart(stateData, container, studentData);
+          }
+        )
+      } else {
+        renderChart(stateData, container);
+      }
     }
-  );
+  )
+
+  function filterStateData (data) {
+    var chartData = _
+      .chain(data.data)
+      .tap(function (arr) {
+        if (!subject) subject = arr[0].subject;
+      })
+      .filter(function (o) {
+        return o.subject === subject;
+      })
+      .filter(function (o) {
+        // if either param falls within the bounds of a set of cuts
+        if (minYear >= o.minYear && minYear <= o.maxYear) return true;
+        if (maxYear >= o.minYear && maxYear <= o.maxYear) return true;
+
+        if (minYear < o.minYear && maxYear >= o.minYear) return true;
+        if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
+      })
+      .sortBy(data, 'maxYear')
+      .last() // remove this when multiple sets of cuts are supported
+      .value();
+
+    return chartData;
+  }
 }
 
-function renderChart (data, container) {
+function renderChart (data, container, studentData) {
   var margin = { top: 0, right: 0, bottom: 20, left: 0 };
   var width = 800 - margin.left - margin.right;
   var height = 400 - margin.top - margin.bottom;
   var colors = ['#525252', '#737373', '#969696', '#BDBDBD', '#D9D9D9'];
 
   var cut_scores = data.cuts;
-  var numLevels = data.labels.length;
+  var numLevels = data.levels.length;
 
   // base with margins
   var svg = container
@@ -114,10 +134,12 @@ function renderChart (data, container) {
   cut_scores.unshift(_.clone(cut_scores[0]));
   // decrease cloned item's level by gutter amount
   cut_scores[0].level -= gutter;
+  cut_scores[0].test = null;
   // duplicate the last item and put it at the end
   cut_scores.push(_.clone(cut_scores[cut_scores.length - 1]));
   // increase cloned item's level by gutter amount
   cut_scores[cut_scores.length - 1].level += gutter;
+  cut_scores[cut_scores.length - 1].test = null;
 
   // create a linear X scale based on our constructed levels
   var xScale = d3.scaleLinear()
@@ -130,7 +152,7 @@ function renderChart (data, container) {
     .tickFormat((d, i) => {
       // use the actual label field for tick labels
       // +1 skips the fake data point we created at the front of the array
-      return cut_scores[i+1].label;
+      return cut_scores[i+1].test;
     })
     .tickSizeOuter(0);
 
@@ -225,13 +247,27 @@ function renderChart (data, container) {
     })
     .attr('dy', '0.4em')
     .style('fill-opacity', 0)
-    .text((d, i) => data.labels[i].label);
+    .text((d, i) => data.levels[i].label);
 
   // next line only needed if chart will be updated
   // bands.attr('d', area);
 
   // alert parent of new size
   if (window['pym']) new pym.Child().sendHeight();
+  if (!studentData) return;
+
+  svg
+    .selectAll('circle')
+    .data(studentData.data.scores)
+    .enter()
+    .append('circle')
+      .attr('r', 10)
+      .attr('cx', (d, i) => {
+        return xScale(_.find(cut_scores, {test: d.test, year: d.year}).level);
+      })
+      .attr('cy', (d, i) => yScale(d.score))
+      .style('fill', 'red')
+      .style('fill-opacity', 0.4)
 }
 
 // make a chart responsive
