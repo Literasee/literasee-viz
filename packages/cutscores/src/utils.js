@@ -61,8 +61,34 @@ function removeSkippedYears (cuts, scores) {
   return result;
 }
 
+function addYears (cuts) {
+  var min = cuts.reduce((acc, cut, i) => {
+    if (!_.isEmpty(acc)) return acc;
+    if (cut.year) return {index: i, year: cut.year};
+  }, {});
+
+  var max = cuts.reduce((acc, cut, i) => {
+    if (cut.year) return {index: i, year: cut.year};
+    return acc;
+  }, {});
+
+  return cuts.map((cut, i, arr) => {
+    if (i < min.index) return _.merge(_.clone(cut), {year: min.year - (min.index - i)});
+    if (i > max.index) return _.merge(_.clone(cut), {year: max.year + (i - max.index)});
+    if (cut.year) return _.clone(cut);
+    // missing in the middle
+    var j = i - 1;
+    while (!arr[j].year) {
+      j--;
+    }
+    return _.merge(_.clone(cut), {year: arr[j].year + (i - j)});
+  });
+}
+
 export function customizeCuts (cuts, scores) {
   var cutsWithRepeats = createCutRepeats(cuts, scores);
   var results = mergeScores(cutsWithRepeats, scores);
-  return removeSkippedYears(results, scores);
+  results = removeSkippedYears(results, scores);
+  results = addYears(results);
+  return results;
 }

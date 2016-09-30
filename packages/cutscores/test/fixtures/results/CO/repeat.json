@@ -8,7 +8,8 @@
     "cut2_label": "419",
     "cut3": 510,
     "cut3_label": "510",
-    "hoss": 700
+    "hoss": 700,
+    "year": 2009
   },
   {
     "test": "Grade 4",
@@ -109,7 +110,8 @@
     "cut2_label": "577",
     "cut3": 628,
     "cut3_label": "628",
-    "hoss": 890
+    "hoss": 890,
+    "year": 2015
   },
   {
     "test": "Grade 9",
@@ -120,7 +122,8 @@
     "cut2_label": "602",
     "cut3": 652,
     "cut3_label": "652",
-    "hoss": 920
+    "hoss": 920,
+    "year": 2016
   },
   {
     "test": "Grade 10",
@@ -131,6 +134,7 @@
     "cut2_label": "627",
     "cut3": 692,
     "cut3_label": "692",
-    "hoss": 950
+    "hoss": 950,
+    "year": 2017
   }
 ]

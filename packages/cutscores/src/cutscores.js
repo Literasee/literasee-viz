@@ -129,7 +129,7 @@ function renderChart (data, container, scores) {
   // slightly below and above them, respectively
 
   // 0 to 1, how much of a "grade" should the gutters represent?
-  var gutter = 0.25;
+  var gutter = 0.5;
   // use position in the cuts array to represent level over time
   _.forEach(cut_scores, (d, i) => d.level = i);
   // duplicate the first item and put it at the front
@@ -154,7 +154,7 @@ function renderChart (data, container, scores) {
     .tickFormat((d, i) => {
       // use the actual label field for tick labels
       // +1 skips the fake data point we created at the front of the array
-      return cut_scores[i+1].test;
+      return `${cut_scores[i+1].test} ${cut_scores[i+1].year}`;
     })
     .tickSizeOuter(0);
 

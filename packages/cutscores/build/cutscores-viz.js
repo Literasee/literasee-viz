@@ -17187,10 +17187,36 @@ function removeSkippedYears (cuts, scores) {
   return result;
 }
 
+function addYears (cuts) {
+  var min = cuts.reduce(function (acc, cut, i) {
+    if (!lodash.isEmpty(acc)) { return acc; }
+    if (cut.year) { return {index: i, year: cut.year}; }
+  }, {});
+
+  var max = cuts.reduce(function (acc, cut, i) {
+    if (cut.year) { return {index: i, year: cut.year}; }
+    return acc;
+  }, {});
+
+  return cuts.map(function (cut, i, arr) {
+    if (i < min.index) { return lodash.merge(lodash.clone(cut), {year: min.year - (min.index - i)}); }
+    if (i > max.index) { return lodash.merge(lodash.clone(cut), {year: max.year + (i - max.index)}); }
+    if (cut.year) { return lodash.clone(cut); }
+    // missing in the middle
+    var j = i - 1;
+    while (!arr[j].year) {
+      j--;
+    }
+    return lodash.merge(lodash.clone(cut), {year: arr[j].year + (i - j)});
+  });
+}
+
 function customizeCuts (cuts, scores) {
   var cutsWithRepeats = createCutRepeats(cuts, scores);
   var results = mergeScores(cutsWithRepeats, scores);
-  return removeSkippedYears(results, scores);
+  results = removeSkippedYears(results, scores);
+  results = addYears(results);
+  return results;
 }
 
 // convert kebab-case names from URL or HTML attrs to camelCase
@@ -17324,7 +17350,7 @@ function renderChart (data, container, scores) {
   // slightly below and above them, respectively
 
   // 0 to 1, how much of a "grade" should the gutters represent?
-  var gutter = 0.25;
+  var gutter = 0.5;
   // use position in the cuts array to represent level over time
   _.forEach(cut_scores, function (d, i) { return d.level = i; });
   // duplicate the first item and put it at the front
@@ -17349,7 +17375,7 @@ function renderChart (data, container, scores) {
     .tickFormat(function (d, i) {
       // use the actual label field for tick labels
       // +1 skips the fake data point we created at the front of the array
-      return cut_scores[i+1].test;
+      return ((cut_scores[i+1].test) + " " + (cut_scores[i+1].year));
     })
     .tickSizeOuter(0);
 
