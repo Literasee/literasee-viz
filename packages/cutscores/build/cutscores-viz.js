@@ -17375,7 +17375,9 @@ function renderChart (data, container, scores) {
     .tickFormat(function (d, i) {
       // use the actual label field for tick labels
       // +1 skips the fake data point we created at the front of the array
-      return ((cut_scores[i+1].test) + " " + (cut_scores[i+1].year));
+      var realCut = cut_scores[i+1];
+      if (scores) { return ((realCut.test) + " / " + (realCut.year)); }
+      return ("" + (realCut.test));
     })
     .tickSizeOuter(0);
 
