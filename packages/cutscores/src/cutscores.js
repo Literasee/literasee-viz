@@ -16,8 +16,9 @@ function getAttrs (selection) {
   var o = {};
   for (var i = attrs.length - 1; i > -1; i--) {
     var { name, value } = attrs[i];
-    if (name.substr(0, 5) === 'data-') name = name.substr(5);
-    o[name] = value;
+    if (name.substr(0, 5) === 'data-') {
+      o[name.substr(5)] = value;
+    }
   }
   return camelize(o);
 }
@@ -46,8 +47,6 @@ export default function (selector = 'body', args) {
   maxYear = parseInt(maxYear, 10);
 
   // load, parse, and filter data
-  let stateData;
-  let studentData;
   let base = window.location.hostname === 'localhost'
     ? 'http://localhost:4000'
     : 'https://literasee.github.io/cutscores';
@@ -55,46 +54,46 @@ export default function (selector = 'body', args) {
   d3.json(
     `${base}/sgp/${state}.json`,
     (err, data) => {
-      stateData = filterStateData(data);
+      const stateData = filterStateData(data, subject, minYear, maxYear);
 
-      if (student) {
+      if (!student) {
+        renderChart(stateData, container);
+      } else {
         d3.json(
           `${base}/students/${student}.json`,
           (err, data) => {
-            studentData = data;
-            stateData.cuts = customizeCuts(stateData.cuts, studentData.data.subjects[subject]);
-            renderChart(stateData, container, studentData.data.subjects[subject]);
+            const studentData = data.data.subjects[stateData.subject];
+            stateData.cuts = customizeCuts(stateData.cuts, studentData);
+            renderChart(stateData, container, studentData);
           }
-        )
-      } else {
-        renderChart(stateData, container);
+        );
       }
     }
-  )
+  );
+}
 
-  function filterStateData (data) {
-    var chartData = _
-      .chain(data.data)
-      .tap(function (arr) {
-        if (!subject) subject = arr[0].subject;
-      })
-      .filter(function (o) {
-        return o.subject === subject;
-      })
-      .filter(function (o) {
-        // if either param falls within the bounds of a set of cuts
-        if (minYear >= o.minYear && minYear <= o.maxYear) return true;
-        if (maxYear >= o.minYear && maxYear <= o.maxYear) return true;
+function filterStateData (data, subject, minYear, maxYear) {
+  var chartData = _
+    .chain(data.data)
+    .tap(function (arr) {
+      if (!subject) subject = arr[0].subject;
+    })
+    .filter(function (o) {
+      return o.subject === subject;
+    })
+    .filter(function (o) {
+      // if either param falls within the bounds of a set of cuts
+      if (minYear >= o.minYear && minYear <= o.maxYear) return true;
+      if (maxYear >= o.minYear && maxYear <= o.maxYear) return true;
 
-        if (minYear < o.minYear && maxYear >= o.minYear) return true;
-        if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
-      })
-      .sortBy(data, 'maxYear')
-      .last() // remove this when multiple sets of cuts are supported
-      .value();
+      if (minYear < o.minYear && maxYear >= o.minYear) return true;
+      if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
+    })
+    .sortBy(data, 'maxYear')
+    .last() // remove this when multiple sets of cuts are supported
+    .value();
 
-    return chartData;
-  }
+  return chartData;
 }
 
 function renderChart (data, container, scores) {
