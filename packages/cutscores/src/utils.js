@@ -23,12 +23,12 @@ export function responsivefy(svg) {
   }
 }
 
-import { camelCase } from 'lodash.camelcase';
+import { default as camelCase } from 'lodash.camelcase';
 
 // convert kebab-case names from URL or HTML attrs to camelCase
 export function camelize (o) {
   var out = {};
-  Object.keys(o).forEach(key => out[_.camelCase(key)] = o[key]);
+  Object.keys(o).forEach(key => out[camelCase(key)] = o[key]);
   return out;
 }
 
