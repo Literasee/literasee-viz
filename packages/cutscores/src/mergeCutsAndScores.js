@@ -26,8 +26,10 @@ function mergeScores (cuts, scores) {
   var s = [].concat(scores);
 
   cuts.forEach(cut => {
-    if (s[0] && s[0].test === cut.test) {
-      result.push(_.clone(_.merge(cut, s.shift())));
+    var match = _.find(scores, {test: cut.test});
+
+    if (match) {
+      result.push(_.merge(_.clone(cut), _.clone(match)));
     } else {
       result.push(_.clone(cut));
     }

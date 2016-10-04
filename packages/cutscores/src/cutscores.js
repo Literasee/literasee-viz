@@ -1,4 +1,5 @@
 import { parse } from 'query-string';
+import 'whatwg-fetch';
 import mergeCutsAndScores from './mergeCutsAndScores';
 import { responsivefy, getAttrs, camelize } from './utils';
 
@@ -30,25 +31,60 @@ export default function (selector = 'body', args) {
     ? 'http://localhost:4000'
     : 'https://literasee.github.io/cutscores';
 
-  d3.json(
-    `${base}/sgp/${state}.json`,
-    (err, data) => {
-      const stateData = filterStateData(data, subject, minYear, maxYear);
-
-      if (!student) {
-        renderChart(stateData, container);
-      } else {
-        d3.json(
-          `${base}/students/${student}.json`,
-          (err, data) => {
-            const studentData = data.data.subjects[stateData.subject];
-            stateData.cuts = mergeCutsAndScores(stateData.cuts, studentData);
-            renderChart(stateData, container, studentData);
-          }
+  if (!student) {
+    return fetch(`${base}/sgp/${state}.json`)
+      .then(data => {
+        return data.json();
+      })
+      .then(data => {
+        const stateData = filterStateData(
+          data,
+          subject,
+          minYear,
+          maxYear
         );
+        renderChart(stateData.pop(), container);
+      });
+  }
+
+  let studentData;
+
+  return fetch(`${base}/students/${student}.json`)
+    .then(data => {
+      return data.json();
+    })
+    .then(data => {
+      studentData = data;
+
+      const cutsFile = data.metadata.split || data.data.state;
+      return fetch(`${base}/sgp/${cutsFile}.json`);
+    })
+    .then(data => {
+      return data.json();
+    })
+    .then(data => {
+      let stateData = filterStateData(data, subject, minYear, maxYear);
+      const subjectData = studentData.data.subjects[stateData[0].subject];
+
+      if (!studentData.metadata.split) {
+        stateData = stateData.pop();
+        stateData.cuts = mergeCutsAndScores(stateData.cuts, subjectData);
+        renderChart(stateData, container, subjectData);
+      } else {
+        var numCuts = _.flatten(_.map(stateData, 'cuts')).length;
+        stateData.forEach(sd => {
+          sd.cuts = mergeCutsAndScores(sd.cuts, subjectData);
+          var ratio = sd.cuts.length / numCuts;
+          var con = container
+            .append('div')
+            .attr('id', Date.now())
+            .style('width', ratio * 100 + '%')
+            .style('display', 'inline-block');
+          renderChart(sd, con, subjectData, ratio);
+        })
       }
-    }
-  );
+    })
+
 }
 
 function filterStateData (data, subject, minYear, maxYear) {
@@ -69,15 +105,14 @@ function filterStateData (data, subject, minYear, maxYear) {
       if (maxYear > o.maxYear && minYear <= o.maxYear) return true;
     })
     .sortBy(data, 'maxYear')
-    .last() // remove this when multiple sets of cuts are supported
     .value();
 
   return chartData;
 }
 
-function renderChart (data, container, scores) {
+function renderChart (data, container, scores, ratio = 1) {
   var margin = { top: 0, right: 0, bottom: 20, left: 0 };
-  var width = 800 - margin.left - margin.right;
+  var width = 800 * ratio - margin.left - margin.right;
   var height = 400 - margin.top - margin.bottom;
   var colors = ['#525252', '#737373', '#969696', '#BDBDBD', '#D9D9D9'];
 
@@ -241,14 +276,14 @@ function renderChart (data, container, scores) {
 
   svg
     .selectAll('circle')
-    .data(scores)
+    .data(scores.filter(score => _.find(cut_scores, {test: score.test})))
     .enter()
     .append('circle')
       .attr('r', 10)
-      .attr('cx', (d, i) => {
+      .attr('cx', d => {
         return xScale(_.find(cut_scores, {test: d.test, year: d.year}).level);
       })
-      .attr('cy', (d, i) => yScale(d.score))
+      .attr('cy', d => yScale(d.score))
       .style('fill', 'red')
       .style('fill-opacity', 0.4);
 }
