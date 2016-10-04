@@ -1,94 +1,48 @@
-import { default as _ } from 'lodash';
+// make a chart responsive
+export function responsivefy(svg) {
+  // get container + svg aspect ratio
+  var container = d3.select(svg.node().parentNode),
+    width = parseInt(svg.style("width")),
+    height = parseInt(svg.style("height")),
+    aspect = width / height;
 
-function createCutRepeats (cuts, scores) {
-  var scoreTests = _.map(scores, 'test');
-  var scoreTestsUnique = _.uniq(scoreTests);
+  // add viewBox and preserveAspectRatio properties,
+  // and call resize so that svg resizes on inital page load
+  svg
+    .attr("viewBox", "0 0 " + width + " " + height)
+    .attr("preserveAspectRatio", "xMinYMid")
+    .call(resize);
 
-  // no repeats
-  if (scoreTests.length === scoreTestsUnique.length) return _.cloneDeep(cuts);
+  d3.select(window).on("resize." + container.attr("id"), resize);
 
-  var result = [];
-  cuts.forEach((cut, i) => {
-    var matches = _.filter(scores, {test: cut.test});
-    if (!matches.length) {
-      result.push(_.clone(cut));
-    } else {
-      for (var j = 0; j < matches.length; j++) {
-        result.push(_.clone(cut));
-      }
-    }
-  })
-  return result;
+  // get width of container and resize svg to fit it
+  function resize() {
+    var targetWidth = parseInt(container.style("width"));
+    svg.attr("width", targetWidth);
+    svg.attr("height", Math.round(targetWidth / aspect));
+  }
 }
 
-function mergeScores (cuts, scores) {
-  var result = [];
-  var s = [].concat(scores);
+import { camelCase } from 'lodash.camelcase';
 
-  cuts.forEach(cut => {
-    if (s[0] && s[0].test === cut.test) {
-      result.push(_.clone(_.merge(cut, s.shift())));
-    } else {
-      result.push(_.clone(cut));
-    }
-  })
-
-  return result;
+// convert kebab-case names from URL or HTML attrs to camelCase
+export function camelize (o) {
+  var out = {};
+  Object.keys(o).forEach(key => out[_.camelCase(key)] = o[key]);
+  return out;
 }
 
-function removeSkippedYears (cuts, scores) {
-  var years = _.compact(_.map(scores, 'year'));
-  var matches = [];
-  years.forEach(year => {
-    var match = _.find(cuts, {year});
-    if (match) matches.push({year, index: cuts.indexOf(match)});
-  })
+// create an object with camelCase keys from the attributes on a DOM element
+export function getAttrs (selection) {
+  if (selection.empty() || !selection.node().hasAttributes()) return {};
 
-  var result = _.cloneDeep(cuts);
-
-  for (var i = matches.length - 1; i > -1; i--) {
-    var a = matches[i];
-    var b = matches[i-1];
-
-    if (b && b.year + 1 === a.year && b.index + 1 < a.index) {
-      result = [].concat(
-        result.slice(0, b.index + 1),
-        result.slice(a.index)
-      )
+  var attrs = selection.node().attributes;
+  var o = {};
+  for (var i = attrs.length - 1; i > -1; i--) {
+    var { name, value } = attrs[i];
+    if (name.substr(0, 5) === 'data-') {
+      o[name.substr(5)] = value;
     }
   }
-
-  return result;
-}
-
-function addYears (cuts) {
-  var min = cuts.reduce((acc, cut, i) => {
-    if (!_.isEmpty(acc)) return acc;
-    if (cut.year) return {index: i, year: cut.year};
-  }, {});
-
-  var max = cuts.reduce((acc, cut, i) => {
-    if (cut.year) return {index: i, year: cut.year};
-    return acc;
-  }, {});
-
-  return cuts.map((cut, i, arr) => {
-    if (i < min.index) return _.merge(_.clone(cut), {year: min.year - (min.index - i)});
-    if (i > max.index) return _.merge(_.clone(cut), {year: max.year + (i - max.index)});
-    if (cut.year) return _.clone(cut);
-    // missing in the middle
-    var j = i - 1;
-    while (!arr[j].year) {
-      j--;
-    }
-    return _.merge(_.clone(cut), {year: arr[j].year + (i - j)});
-  });
-}
-
-export function customizeCuts (cuts, scores) {
-  var cutsWithRepeats = createCutRepeats(cuts, scores);
-  var results = mergeScores(cutsWithRepeats, scores);
-  results = removeSkippedYears(results, scores);
-  results = addYears(results);
-  return results;
+  return camelize(o);
 }

@@ -1,2 +1,2 @@
 export { default as cutscores } from './src/cutscores';
-export { customizeCuts } from './src/utils';
+export { default as mergeCutsAndScores } from './src/mergeCutsAndScores';
