@@ -3,6 +3,10 @@ import 'whatwg-fetch';
 import mergeCutsAndScores from './mergeCutsAndScores';
 import { responsivefy, getAttrs, camelize } from './utils';
 
+function fetchJSON (url) {
+  return fetch(url).then(d => d.json());
+}
+
 export default function (selector = 'body', args) {
   let container = d3.select(selector);
   let attrs = getAttrs(container);
@@ -32,10 +36,7 @@ export default function (selector = 'body', args) {
     : 'https://literasee.github.io/cutscores';
 
   if (!student) {
-    return fetch(`${base}/sgp/${state}.json`)
-      .then(data => {
-        return data.json();
-      })
+    return fetchJSON(`${base}/sgp/${state}.json`)
       .then(data => {
         const stateData = filterStateData(
           data,
@@ -49,18 +50,12 @@ export default function (selector = 'body', args) {
 
   let studentData;
 
-  return fetch(`${base}/students/${student}.json`)
-    .then(data => {
-      return data.json();
-    })
+  return fetchJSON(`${base}/students/${student}.json`)
     .then(data => {
       studentData = data;
 
       const cutsFile = data.metadata.split || data.data.state;
-      return fetch(`${base}/sgp/${cutsFile}.json`);
-    })
-    .then(data => {
-      return data.json();
+      return fetchJSON(`${base}/sgp/${cutsFile}.json`);
     })
     .then(data => {
       let stateData = filterStateData(data, subject, minYear, maxYear);

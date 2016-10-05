@@ -18292,6 +18292,10 @@ function getAttrs (selection) {
   return camelize(o);
 }
 
+function fetchJSON (url) {
+  return fetch(url).then(function (d) { return d.json(); });
+}
+
 var cutscores = function (selector, args) {
   if ( selector === void 0 ) selector = 'body';
 
@@ -18322,10 +18326,11 @@ var cutscores = function (selector, args) {
     : 'https://literasee.github.io/cutscores';
 
   if (!student) {
-    return fetch((base + "/sgp/" + state + ".json"))
-      .then(function (data) {
-        return data.json();
-      })
+    // return fetch(`${base}/sgp/${state}.json`)
+    //   .then(data => {
+    //     return data.json();
+    //   })
+    return fetchJSON((base + "/sgp/" + state + ".json"))
       .then(function (data) {
         var stateData = filterStateData(
           data,
@@ -18339,18 +18344,12 @@ var cutscores = function (selector, args) {
 
   var studentData;
 
-  return fetch((base + "/students/" + student + ".json"))
-    .then(function (data) {
-      return data.json();
-    })
+  return fetchJSON((base + "/students/" + student + ".json"))
     .then(function (data) {
       studentData = data;
 
       var cutsFile = data.metadata.split || data.data.state;
-      return fetch((base + "/sgp/" + cutsFile + ".json"));
-    })
-    .then(function (data) {
-      return data.json();
+      return fetchJSON((base + "/sgp/" + cutsFile + ".json"));
     })
     .then(function (data) {
       var stateData = filterStateData(data, subject, minYear, maxYear);
