@@ -23,11 +23,13 @@ function createCutRepeats (cuts, scores) {
 
 function mergeScores (cuts, scores) {
   var result = [];
+  var s = _.clone(scores);
 
   cuts.forEach(cut => {
-    var match = _.find(scores, {test: cut.test});
+    var match = _.find(s, {test: cut.test});
 
     if (match) {
+      _.remove(s, match);
       result.push(_.merge(_.clone(cut), _.clone(match)));
     } else {
       result.push(_.clone(cut));

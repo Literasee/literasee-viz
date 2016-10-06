@@ -2,7 +2,7 @@ module.exports = {
   server: '.',
   files: [
     '*.html',
-    'src/*'
+    'build/*'
   ],
   ui: false,
   notify: false

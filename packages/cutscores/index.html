@@ -4,14 +4,30 @@
   <meta charset="UTF-8">
   <title>cutscores-viz</title>
 </head>
-<body style="margin: 0 2em">
+<body style="margin: 0 4em">
+
+  <h2>State data only</h2>
+  <div id="state"></div>
+  <h2>Standard grade progression</h2>
+  <div id="standard"></div>
+  <h2>Grade 5 repeat</h2>
+  <div id="repeat"></div>
+  <h2>Grade 8 skipped</h2>
+  <div id="skipped"></div>
+  <h2>Grade 7 split</h2>
+  <div id="split"></div>
 
   <script src="//d3js.org/d3.v4.min.js"></script>
-  <script src="//cdn.jsdelivr.net/lodash/4.15.0/lodash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.16.4/lodash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/fetch/1.0.0/fetch.min.js"></script>
   <script src="build/cutscores-viz.js"></script>
 
   <script>
-    d3.cutscores();
+    d3.cutscores('#state');
+    d3.cutscores('#standard', {student: 'standard'});
+    d3.cutscores('#repeat', {student: 'repeat'});
+    d3.cutscores('#skipped', {student: 'skipped'});
+    d3.cutscores('#split', {student: 'split'});
   </script>
 
 </body>

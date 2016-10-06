@@ -26,14 +26,14 @@ export function responsivefy(svg) {
 import { default as camelCase } from 'lodash.camelcase';
 
 // convert kebab-case names from URL or HTML attrs to camelCase
-export function camelize (o) {
+export function camelizeKeys (o) {
   var out = {};
   Object.keys(o).forEach(key => out[camelCase(key)] = o[key]);
   return out;
 }
 
 // create an object with camelCase keys from the attributes on a DOM element
-export function getAttrs (selection) {
+export function getDataAttributes (selection) {
   if (selection.empty() || !selection.node().hasAttributes()) return {};
 
   var attrs = selection.node().attributes;
@@ -44,5 +44,5 @@ export function getAttrs (selection) {
       o[name.substr(5)] = value;
     }
   }
-  return camelize(o);
+  return camelizeKeys(o);
 }

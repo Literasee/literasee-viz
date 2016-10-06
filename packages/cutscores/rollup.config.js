@@ -9,6 +9,6 @@ export default {
     commonjs(),
     buble({objectAssign: 'Object.assign'})
   ],
-  format: 'umd',
+  format: 'iife',
   moduleName: 'd3'
 }
