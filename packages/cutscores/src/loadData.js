@@ -55,7 +55,7 @@ export default function ({state, student, subject, minYear, maxYear}) {
     .then(data => {
       studentData = data;
 
-      return fetchJSON(`${base}/sgp/${studentData.metadata.split || state}.json`);
+      return fetchJSON(`${base}/sgp/${data.metadata.split || data.data.state}.json`);
     })
     .then(data => {
       const stateData = filter(data);
