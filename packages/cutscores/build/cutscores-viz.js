@@ -7,7 +7,6 @@ var index$2 = function (str) {
 	});
 };
 
-/* eslint-disable no-unused-vars */
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -153,16 +152,6 @@ function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
 
-/**
- * lodash (Custom Build) <https://lodash.com/>
- * Build: `lodash modularize exports="npm" -o ./`
- * Copyright jQuery Foundation and other contributors <https://jquery.org/>
- * Released under MIT license <https://lodash.com/license>
- * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
- * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- */
-
-/** Used as references for various `Number` constants. */
 var INFINITY = 1 / 0;
 
 /** `Object#toString` result references. */
@@ -778,7 +767,6 @@ function responsivefy(svg) {
   }
 }
 
-// convert kebab-case names from URL or HTML attrs to camelCase
 function camelizeKeys (o) {
   var out = {};
   Object.keys(o).forEach(function (key) { return out[index$6(key)] = o[key]; });
@@ -18032,7 +18020,7 @@ var cutscores = function (selector, args) {
         var ref$1 = createScales(cutscoreSet.cuts);
         var x = ref$1.x;
         var y = ref$1.y;
-        container.call(drawBackground, cutscoreSet, x, y);
+        container.call(drawBackground, cutscoreSet, x, y, 1, false);
       }
 
     });
@@ -18072,17 +18060,23 @@ function createScales (cuts) {
 }
 
 
-function drawBackground (selection, data, x, y, ratio) {
+function drawBackground (selection, data, x, y, ratio, absolute) {
   if ( ratio === void 0 ) ratio = 1;
+  if ( absolute === void 0 ) absolute = true;
 
   var colors = ['#525252', '#737373', '#969696', '#BDBDBD', '#D9D9D9'];
 
   var cut_scores = data.cuts;
   var numLevels = data.levels.length;
 
+  // if the background will be absolutely positioned to enable scores overlay
+  // the parent container needs position set so it contains the background
+  if (absolute) { selection.style('position', 'relative'); }
+
   // base with margins
   var svg = selection
     .append('svg')
+      .style('position', absolute && 'absolute')
       .attr('width', width * ratio + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
       .call(responsivefy)
@@ -18210,14 +18204,13 @@ function drawBackground (selection, data, x, y, ratio) {
 function drawScores (selection, cutscoreSet, x, y, ratio, scores) {
   if ( ratio === void 0 ) ratio = 1;
 
-  selection.style('position', 'relative');
   var svg = selection
+    .append('div')
+      .attr('id', Date.now())
+      .style('position', 'relative')
     .append('svg')
       .attr('width', width * ratio + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
-      .style('position', 'absolute')
-      .style('top', 0)
-      .style('left', 0)
       .call(responsivefy)
     .append('g')
       .attr('transform', ("translate(" + (margin.left) + ", " + (margin.top) + ")"));
@@ -18233,7 +18226,7 @@ function drawScores (selection, cutscoreSet, x, y, ratio, scores) {
       })
       .attr('cy', function (d) { return y(d.score); })
       .style('fill', 'red')
-      .style('fill-opacity', 0.4);
+      .style('fill-opacity', 0.6);
 }
 
 exports.cutscores = cutscores;

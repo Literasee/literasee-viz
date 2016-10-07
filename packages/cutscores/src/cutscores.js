@@ -54,7 +54,7 @@ export default function (selector = 'body', args) {
         const cutscoreSet = stateData.pop();
         cutscoreSet.cuts = createGutterCuts(cutscoreSet.cuts);
         const { x, y } = createScales(cutscoreSet.cuts);
-        container.call(drawBackground, cutscoreSet, x, y);
+        container.call(drawBackground, cutscoreSet, x, y, 1, false);
       }
 
     });
@@ -94,15 +94,20 @@ function createScales (cuts) {
 }
 
 
-function drawBackground (selection, data, x, y, ratio = 1) {
+function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
   var colors = ['#525252', '#737373', '#969696', '#BDBDBD', '#D9D9D9'];
 
   var cut_scores = data.cuts;
   var numLevels = data.levels.length;
 
+  // if the background will be absolutely positioned to enable scores overlay
+  // the parent container needs position set so it contains the background
+  if (absolute) selection.style('position', 'relative');
+
   // base with margins
   var svg = selection
     .append('svg')
+      .style('position', absolute && 'absolute')
       .attr('width', width * ratio + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
       .call(responsivefy)
@@ -228,14 +233,13 @@ function drawBackground (selection, data, x, y, ratio = 1) {
 }
 
 function drawScores (selection, cutscoreSet, x, y, ratio = 1, scores) {
-  selection.style('position', 'relative');
   var svg = selection
+    .append('div')
+      .attr('id', Date.now())
+      .style('position', 'relative')
     .append('svg')
       .attr('width', width * ratio + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
-      .style('position', 'absolute')
-      .style('top', 0)
-      .style('left', 0)
       .call(responsivefy)
     .append('g')
       .attr('transform', `translate(${margin.left}, ${margin.top})`);
@@ -251,5 +255,5 @@ function drawScores (selection, cutscoreSet, x, y, ratio = 1, scores) {
       })
       .attr('cy', d => y(d.score))
       .style('fill', 'red')
-      .style('fill-opacity', 0.4);
+      .style('fill-opacity', 0.6);
 }
