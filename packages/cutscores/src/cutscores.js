@@ -240,6 +240,7 @@ function drawScores (selection, cuts, x, y, ratio = 1, scores) {
     .append('div')
       .attr('id', Date.now())
       .style('position', 'relative')
+      .style('pointer-events', 'none')
     .append('svg')
       .attr('width', width * ratio + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
@@ -256,7 +257,5 @@ function drawScores (selection, cuts, x, y, ratio = 1, scores) {
       .attr('cx', d => {
         return x(_.find(cuts, {test: d.test, year: d.year}).level);
       })
-      .attr('cy', d => y(d.score))
-      .style('fill', 'red')
-      .style('fill-opacity', 0.6);
+      .attr('cy', d => y(d.score));
 }
