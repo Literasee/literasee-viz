@@ -10,19 +10,20 @@ var margin = { top: 0, right: 0, bottom: 30, left: 0 };
 var width = w - margin.left - margin.right;
 var height = h - margin.top - margin.bottom;
 
+
 export default function (selector = 'body', args) {
-  const container = d3.select(selector);
+  const container = d3.select(selector).style('position', 'relative');
   const params = getDataParameters(selector, args);
 
   loadData(params)
     .then(({stateData, studentData}) => {
 
-      const allCuts = _.flatten(_.map(stateData, 'cuts'));
+      let allCuts = _.flatten(_.map(stateData, 'cuts'));
 
       if (studentData) {
         const subjectData = studentData.data.subjects[stateData[0].subject];
 
-        stateData.forEach(cutscoreSet => {
+        stateData.forEach((cutscoreSet, i) => {
           // get the ratio before modifying the cuts
           var ratio = cutscoreSet.cuts.length / allCuts.length;
 
@@ -42,14 +43,20 @@ export default function (selector = 'body', args) {
               .attr('id', Date.now())
               .style('width', ratio * 100 + '%')
               .style('display', 'inline-block')
-              .call(drawBackground, cutscoreSet, x, y, ratio)
-              .call(drawScores, cutscoreSet, x, y, ratio, subjectData);
+              .style('position', 'absolute')
+              .style(i ? 'right' : 'left', 0)
+              .call(drawBackground, cutscoreSet, x, y, ratio);
           } else {
             container
-              .call(drawBackground, cutscoreSet, x, y)
-              .call(drawScores, cutscoreSet, x, y, ratio, subjectData);
+              .call(drawBackground, cutscoreSet, x, y);
           }
         });
+
+        allCuts = mergeCutsAndScores(allCuts, subjectData);
+        allCuts = createGutterCuts(allCuts);
+        const { x, y } = createScales(allCuts);
+        container.call(drawScores, allCuts, x, y, 1, subjectData);
+
       } else {
         const cutscoreSet = stateData.pop();
         cutscoreSet.cuts = createGutterCuts(cutscoreSet.cuts);
@@ -99,10 +106,6 @@ function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
 
   var cut_scores = data.cuts;
   var numLevels = data.levels.length;
-
-  // if the background will be absolutely positioned to enable scores overlay
-  // the parent container needs position set so it contains the background
-  if (absolute) selection.style('position', 'relative');
 
   // base with margins
   var svg = selection
@@ -232,7 +235,7 @@ function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
   if (window['pym']) new pym.Child().sendHeight();
 }
 
-function drawScores (selection, cutscoreSet, x, y, ratio = 1, scores) {
+function drawScores (selection, cuts, x, y, ratio = 1, scores) {
   var svg = selection
     .append('div')
       .attr('id', Date.now())
@@ -246,12 +249,12 @@ function drawScores (selection, cutscoreSet, x, y, ratio = 1, scores) {
 
   svg
     .selectAll('circle')
-    .data(scores.filter(score => _.find(cutscoreSet.cuts, {test: score.test})))
+    .data(scores.filter(score => _.find(cuts, {test: score.test})))
     .enter()
     .append('circle')
       .attr('r', 10)
       .attr('cx', d => {
-        return x(_.find(cutscoreSet.cuts, {test: d.test, year: d.year}).level);
+        return x(_.find(cuts, {test: d.test, year: d.year}).level);
       })
       .attr('cy', d => y(d.score))
       .style('fill', 'red')

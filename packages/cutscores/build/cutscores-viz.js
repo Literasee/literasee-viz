@@ -17967,10 +17967,11 @@ var margin = { top: 0, right: 0, bottom: 30, left: 0 };
 var width = w - margin.left - margin.right;
 var height = h - margin.top - margin.bottom;
 
+
 var cutscores = function (selector, args) {
   if ( selector === void 0 ) selector = 'body';
 
-  var container = d3.select(selector);
+  var container = d3.select(selector).style('position', 'relative');
   var params = getDataParameters(selector, args);
 
   loadData(params)
@@ -17984,7 +17985,7 @@ var cutscores = function (selector, args) {
       if (studentData) {
         var subjectData = studentData.data.subjects[stateData[0].subject];
 
-        stateData.forEach(function (cutscoreSet) {
+        stateData.forEach(function (cutscoreSet, i) {
           // get the ratio before modifying the cuts
           var ratio = cutscoreSet.cuts.length / allCuts.length;
 
@@ -18006,21 +18007,29 @@ var cutscores = function (selector, args) {
               .attr('id', Date.now())
               .style('width', ratio * 100 + '%')
               .style('display', 'inline-block')
-              .call(drawBackground, cutscoreSet, x, y, ratio)
-              .call(drawScores, cutscoreSet, x, y, ratio, subjectData);
+              .style('position', 'absolute')
+              .style(i ? 'right' : 'left', 0)
+              .call(drawBackground, cutscoreSet, x, y, ratio);
           } else {
             container
-              .call(drawBackground, cutscoreSet, x, y)
-              .call(drawScores, cutscoreSet, x, y, ratio, subjectData);
+              .call(drawBackground, cutscoreSet, x, y);
           }
         });
+
+        allCuts = mergeCutsAndScores(allCuts, subjectData);
+        allCuts = createGutterCuts(allCuts);
+        var ref$1 = createScales(allCuts);
+        var x = ref$1.x;
+        var y = ref$1.y;
+        container.call(drawScores, allCuts, x, y, 1, subjectData);
+
       } else {
         var cutscoreSet = stateData.pop();
         cutscoreSet.cuts = createGutterCuts(cutscoreSet.cuts);
-        var ref$1 = createScales(cutscoreSet.cuts);
-        var x = ref$1.x;
-        var y = ref$1.y;
-        container.call(drawBackground, cutscoreSet, x, y, 1, false);
+        var ref$2 = createScales(cutscoreSet.cuts);
+        var x$1 = ref$2.x;
+        var y$1 = ref$2.y;
+        container.call(drawBackground, cutscoreSet, x$1, y$1, 1, false);
       }
 
     });
@@ -18068,10 +18077,6 @@ function drawBackground (selection, data, x, y, ratio, absolute) {
 
   var cut_scores = data.cuts;
   var numLevels = data.levels.length;
-
-  // if the background will be absolutely positioned to enable scores overlay
-  // the parent container needs position set so it contains the background
-  if (absolute) { selection.style('position', 'relative'); }
 
   // base with margins
   var svg = selection
@@ -18201,7 +18206,7 @@ function drawBackground (selection, data, x, y, ratio, absolute) {
   if (window['pym']) { new pym.Child().sendHeight(); }
 }
 
-function drawScores (selection, cutscoreSet, x, y, ratio, scores) {
+function drawScores (selection, cuts, x, y, ratio, scores) {
   if ( ratio === void 0 ) ratio = 1;
 
   var svg = selection
@@ -18217,12 +18222,12 @@ function drawScores (selection, cutscoreSet, x, y, ratio, scores) {
 
   svg
     .selectAll('circle')
-    .data(scores.filter(function (score) { return _.find(cutscoreSet.cuts, {test: score.test}); }))
+    .data(scores.filter(function (score) { return _.find(cuts, {test: score.test}); }))
     .enter()
     .append('circle')
       .attr('r', 10)
       .attr('cx', function (d) {
-        return x(_.find(cutscoreSet.cuts, {test: d.test, year: d.year}).level);
+        return x(_.find(cuts, {test: d.test, year: d.year}).level);
       })
       .attr('cy', function (d) { return y(d.score); })
       .style('fill', 'red')
