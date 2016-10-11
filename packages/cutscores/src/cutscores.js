@@ -55,6 +55,12 @@ export default function (selector = 'body', args) {
 
         allCuts = mergeCutsAndScores(allCuts, subjectData);
         allCuts = createGutterCuts(allCuts);
+        const scores = subjectData.map(d => {
+          return _.merge(
+            d,
+            { level: _.find(allCuts, {test: d.test, year: d.year}).level }
+          );
+        })
         const { x, y } = createScales(allCuts);
 
         var layer = container
@@ -64,8 +70,8 @@ export default function (selector = 'body', args) {
             .style('pointer-events', 'none')
 
         layer
-          .call(drawLines, allCuts, x, y, 1, subjectData)
-          .call(drawScores, allCuts, x, y, 1, subjectData);
+          .call(drawLines, scores, x, y)
+          .call(drawScores, scores, x, y);
 
       } else {
         const cutscoreSet = stateData.pop();
@@ -245,20 +251,19 @@ function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
   if (window['pym']) new pym.Child().sendHeight();
 }
 
-function drawLines (selection, cuts, x, y, ratio = 1, scores) {
+function drawLines (selection, scores, x, y) {
   var svg = selection
     .append('svg')
       .style('position', 'absolute')
-      .attr('width', width * ratio + margin.left + margin.right)
+      .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
       .call(responsivefy)
     .append('g')
       .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
   var line = d3.line()
-    .x(d => x(_.find(cuts, {test: d.test, year: d.year}).level))
+    .x(d => x(d.level))
     .y(d => y(d.score))
-    .defined(d => d.sgp)
     .curve(d3.curveCatmullRom.alpha(0.5));
 
   svg
@@ -277,11 +282,11 @@ function drawLines (selection, cuts, x, y, ratio = 1, scores) {
       .style('fill', 'none');
 }
 
-function drawScores (selection, cuts, x, y, ratio = 1, scores) {
+function drawScores (selection, scores, x, y) {
   var svg = selection
     .append('svg')
       .style('position', 'absolute')
-      .attr('width', width * ratio + margin.left + margin.right)
+      .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
       .call(responsivefy)
     .append('g')
@@ -293,8 +298,6 @@ function drawScores (selection, cuts, x, y, ratio = 1, scores) {
     .enter()
     .append('circle')
       .attr('r', 10)
-      .attr('cx', d => {
-        return x(_.find(cuts, {test: d.test, year: d.year}).level);
-      })
+      .attr('cx', d => x(d.level))
       .attr('cy', d => y(d.score));
 }
