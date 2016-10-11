@@ -7,7 +7,6 @@ var index$2 = function (str) {
 	});
 };
 
-/* eslint-disable no-unused-vars */
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -153,16 +152,6 @@ function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
 
-/**
- * lodash (Custom Build) <https://lodash.com/>
- * Build: `lodash modularize exports="npm" -o ./`
- * Copyright jQuery Foundation and other contributors <https://jquery.org/>
- * Released under MIT license <https://lodash.com/license>
- * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
- * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- */
-
-/** Used as references for various `Number` constants. */
 var INFINITY = 1 / 0;
 
 /** `Object#toString` result references. */
@@ -785,7 +774,6 @@ function responsivefy(svg) {
   }
 }
 
-// convert kebab-case names from URL or HTML attrs to camelCase
 function camelizeKeys (o) {
   var out = {};
   Object.keys(o).forEach(function (key) { return out[index$6(key)] = o[key]; });
@@ -18038,6 +18026,12 @@ var cutscores = function (selector, args) {
 
         allCuts = mergeCutsAndScores(allCuts, subjectData);
         allCuts = createGutterCuts(allCuts);
+        var scores = subjectData.map(function (d) {
+          return _.merge(
+            d,
+            { level: _.find(allCuts, {test: d.test, year: d.year}).level }
+          );
+        })
         var ref$1 = createScales(allCuts);
         var x = ref$1.x;
         var y = ref$1.y;
@@ -18049,8 +18043,8 @@ var cutscores = function (selector, args) {
             .style('pointer-events', 'none')
 
         layer
-          .call(drawLines, allCuts, x, y, 1, subjectData)
-          .call(drawScores, allCuts, x, y, 1, subjectData);
+          .call(drawLines, scores, x, y)
+          .call(drawScores, scores, x, y);
 
       } else {
         var cutscoreSet = stateData.pop();
@@ -18235,22 +18229,19 @@ function drawBackground (selection, data, x, y, ratio, absolute) {
   if (window['pym']) { new pym.Child().sendHeight(); }
 }
 
-function drawLines (selection, cuts, x, y, ratio, scores) {
-  if ( ratio === void 0 ) ratio = 1;
-
+function drawLines (selection, scores, x, y) {
   var svg = selection
     .append('svg')
       .style('position', 'absolute')
-      .attr('width', width * ratio + margin.left + margin.right)
+      .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
       .call(responsivefy)
     .append('g')
       .attr('transform', ("translate(" + (margin.left) + ", " + (margin.top) + ")"));
 
   var line = d3.line()
-    .x(function (d) { return x(_.find(cuts, {test: d.test, year: d.year}).level); })
+    .x(function (d) { return x(d.level); })
     .y(function (d) { return y(d.score); })
-    .defined(function (d) { return d.sgp; })
     .curve(d3.curveCatmullRom.alpha(0.5));
 
   svg
@@ -18260,8 +18251,8 @@ function drawLines (selection, cuts, x, y, ratio, scores) {
     .append('path')
       .attr('class', 'line')
       .attr('d', function (d, i) {
-        if (line.defined()(d)) {
-          return line(scores.slice(i - 1, i + 1));
+        if (i + 1 < scores.length && scores[i + 1].sgp) {
+          return line(scores.slice(i, i + 2));
         }
       })
       .style('stroke', function (d) { return interp(+d.sgp / 100); })
@@ -18269,13 +18260,11 @@ function drawLines (selection, cuts, x, y, ratio, scores) {
       .style('fill', 'none');
 }
 
-function drawScores (selection, cuts, x, y, ratio, scores) {
-  if ( ratio === void 0 ) ratio = 1;
-
+function drawScores (selection, scores, x, y) {
   var svg = selection
     .append('svg')
       .style('position', 'absolute')
-      .attr('width', width * ratio + margin.left + margin.right)
+      .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
       .call(responsivefy)
     .append('g')
@@ -18287,9 +18276,7 @@ function drawScores (selection, cuts, x, y, ratio, scores) {
     .enter()
     .append('circle')
       .attr('r', 10)
-      .attr('cx', function (d) {
-        return x(_.find(cuts, {test: d.test, year: d.year}).level);
-      })
+      .attr('cx', function (d) { return x(d.level); })
       .attr('cy', function (d) { return y(d.score); });
 }
 

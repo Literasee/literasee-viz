@@ -273,8 +273,8 @@ function drawLines (selection, scores, x, y) {
     .append('path')
       .attr('class', 'line')
       .attr('d', (d, i) => {
-        if (line.defined()(d)) {
-          return line(scores.slice(i - 1, i + 1));
+        if (i + 1 < scores.length && scores[i + 1].sgp) {
+          return line(scores.slice(i, i + 2));
         }
       })
       .style('stroke', d => interp(+d.sgp / 100))
