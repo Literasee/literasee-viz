@@ -9,6 +9,7 @@ var h = 400;
 var margin = { top: 0, right: 0, bottom: 30, left: 0 };
 var width = w - margin.left - margin.right;
 var height = h - margin.top - margin.bottom;
+var interp = d3.interpolateRgb('red', 'blue');
 
 
 export default function (selector = 'body', args) {
@@ -55,7 +56,16 @@ export default function (selector = 'body', args) {
         allCuts = mergeCutsAndScores(allCuts, subjectData);
         allCuts = createGutterCuts(allCuts);
         const { x, y } = createScales(allCuts);
-        container.call(drawScores, allCuts, x, y, 1, subjectData);
+
+        var layer = container
+          .append('div')
+            .attr('id', Date.now())
+            .style('position', 'relative')
+            .style('pointer-events', 'none')
+
+        layer
+          .call(drawLines, allCuts, x, y, 1, subjectData)
+          .call(drawScores, allCuts, x, y, 1, subjectData);
 
       } else {
         const cutscoreSet = stateData.pop();
@@ -235,13 +245,42 @@ function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
   if (window['pym']) new pym.Child().sendHeight();
 }
 
+function drawLines (selection, cuts, x, y, ratio = 1, scores) {
+  var svg = selection
+    .append('svg')
+      .style('position', 'absolute')
+      .attr('width', width * ratio + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .call(responsivefy)
+    .append('g')
+      .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+  var line = d3.line()
+    .x(d => x(_.find(cuts, {test: d.test, year: d.year}).level))
+    .y(d => y(d.score))
+    .defined(d => d.sgp)
+    .curve(d3.curveCatmullRom.alpha(0.5));
+
+  svg
+    .selectAll('.line')
+    .data(scores)
+    .enter()
+    .append('path')
+      .attr('class', 'line')
+      .attr('d', (d, i) => {
+        if (line.defined()(d)) {
+          return line(scores.slice(i - 1, i + 1));
+        }
+      })
+      .style('stroke', d => interp(+d.sgp / 100))
+      .style('stroke-width', 3)
+      .style('fill', 'none');
+}
+
 function drawScores (selection, cuts, x, y, ratio = 1, scores) {
   var svg = selection
-    .append('div')
-      .attr('id', Date.now())
-      .style('position', 'relative')
-      .style('pointer-events', 'none')
     .append('svg')
+      .style('position', 'absolute')
       .attr('width', width * ratio + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
       .call(responsivefy)
@@ -250,12 +289,13 @@ function drawScores (selection, cuts, x, y, ratio = 1, scores) {
 
   svg
     .selectAll('circle')
-    .data(scores.filter(score => _.find(cuts, {test: score.test})))
+    .data(scores)
     .enter()
     .append('circle')
       .attr('r', 10)
       .attr('cx', d => {
         return x(_.find(cuts, {test: d.test, year: d.year}).level);
       })
-      .attr('cy', d => y(d.score));
+      .attr('cy', d => y(d.score))
+      .style('fill', d => interp(+d.sgp / 100));
 }

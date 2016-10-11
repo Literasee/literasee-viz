@@ -7,6 +7,7 @@ var index$2 = function (str) {
 	});
 };
 
+/* eslint-disable no-unused-vars */
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -152,6 +153,16 @@ function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
 
+/**
+ * lodash (Custom Build) <https://lodash.com/>
+ * Build: `lodash modularize exports="npm" -o ./`
+ * Copyright jQuery Foundation and other contributors <https://jquery.org/>
+ * Released under MIT license <https://lodash.com/license>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ */
+
+/** Used as references for various `Number` constants. */
 var INFINITY = 1 / 0;
 
 /** `Object#toString` result references. */
@@ -757,16 +768,24 @@ function responsivefy(svg) {
     .attr("preserveAspectRatio", "xMinYMid")
     .call(resize);
 
-  d3.select(window).on("resize." + container.attr("id"), resize);
+  // ensure a unique listener is created for every svg passed in
+  // even if they share the same parent container
+  d3.select(window).on("resize." + container.attr("id") + Date.now(), resize);
 
   // get width of container and resize svg to fit it
   function resize() {
     var targetWidth = parseInt(container.style("width"));
     svg.attr("width", targetWidth);
     svg.attr("height", Math.round(targetWidth / aspect));
+    // if svgs are absolutely positioned (for layering, etc.)
+    // size the parent container to ensure proper layout
+    if (svg.style('position') === 'absolute') {
+      container.style('height', Math.round(targetWidth / aspect) + 'px');
+    }
   }
 }
 
+// convert kebab-case names from URL or HTML attrs to camelCase
 function camelizeKeys (o) {
   var out = {};
   Object.keys(o).forEach(function (key) { return out[index$6(key)] = o[key]; });
@@ -881,7 +900,7 @@ var loadData = function (ref) {
     .then(function (data) {
       studentData = data;
 
-      return fetchJSON((base + "/sgp/" + (studentData.metadata.split || state) + ".json"));
+      return fetchJSON((base + "/sgp/" + (data.metadata.split || data.data.state) + ".json"));
     })
     .then(function (data) {
       var stateData = filter(data);
@@ -17966,6 +17985,7 @@ var h = 400;
 var margin = { top: 0, right: 0, bottom: 30, left: 0 };
 var width = w - margin.left - margin.right;
 var height = h - margin.top - margin.bottom;
+var interp = d3.interpolateRgb('red', 'blue');
 
 
 var cutscores = function (selector, args) {
@@ -18021,7 +18041,16 @@ var cutscores = function (selector, args) {
         var ref$1 = createScales(allCuts);
         var x = ref$1.x;
         var y = ref$1.y;
-        container.call(drawScores, allCuts, x, y, 1, subjectData);
+
+        var layer = container
+          .append('div')
+            .attr('id', Date.now())
+            .style('position', 'relative')
+            .style('pointer-events', 'none')
+
+        layer
+          .call(drawLines, allCuts, x, y, 1, subjectData)
+          .call(drawScores, allCuts, x, y, 1, subjectData);
 
       } else {
         var cutscoreSet = stateData.pop();
@@ -18206,15 +18235,46 @@ function drawBackground (selection, data, x, y, ratio, absolute) {
   if (window['pym']) { new pym.Child().sendHeight(); }
 }
 
+function drawLines (selection, cuts, x, y, ratio, scores) {
+  if ( ratio === void 0 ) ratio = 1;
+
+  var svg = selection
+    .append('svg')
+      .style('position', 'absolute')
+      .attr('width', width * ratio + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .call(responsivefy)
+    .append('g')
+      .attr('transform', ("translate(" + (margin.left) + ", " + (margin.top) + ")"));
+
+  var line = d3.line()
+    .x(function (d) { return x(_.find(cuts, {test: d.test, year: d.year}).level); })
+    .y(function (d) { return y(d.score); })
+    .defined(function (d) { return d.sgp; })
+    .curve(d3.curveCatmullRom.alpha(0.5));
+
+  svg
+    .selectAll('.line')
+    .data(scores)
+    .enter()
+    .append('path')
+      .attr('class', 'line')
+      .attr('d', function (d, i) {
+        if (line.defined()(d)) {
+          return line(scores.slice(i - 1, i + 1));
+        }
+      })
+      .style('stroke', function (d) { return interp(+d.sgp / 100); })
+      .style('stroke-width', 3)
+      .style('fill', 'none');
+}
+
 function drawScores (selection, cuts, x, y, ratio, scores) {
   if ( ratio === void 0 ) ratio = 1;
 
   var svg = selection
-    .append('div')
-      .attr('id', Date.now())
-      .style('position', 'relative')
-      .style('pointer-events', 'none')
     .append('svg')
+      .style('position', 'absolute')
       .attr('width', width * ratio + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
       .call(responsivefy)
@@ -18223,14 +18283,15 @@ function drawScores (selection, cuts, x, y, ratio, scores) {
 
   svg
     .selectAll('circle')
-    .data(scores.filter(function (score) { return _.find(cuts, {test: score.test}); }))
+    .data(scores)
     .enter()
     .append('circle')
       .attr('r', 10)
       .attr('cx', function (d) {
         return x(_.find(cuts, {test: d.test, year: d.year}).level);
       })
-      .attr('cy', function (d) { return y(d.score); });
+      .attr('cy', function (d) { return y(d.score); })
+      .style('fill', function (d) { return interp(+d.sgp / 100); });
 }
 
 exports.cutscores = cutscores;

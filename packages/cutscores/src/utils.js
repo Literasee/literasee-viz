@@ -13,13 +13,20 @@ export function responsivefy(svg) {
     .attr("preserveAspectRatio", "xMinYMid")
     .call(resize);
 
-  d3.select(window).on("resize." + container.attr("id"), resize);
+  // ensure a unique listener is created for every svg passed in
+  // even if they share the same parent container
+  d3.select(window).on("resize." + container.attr("id") + Date.now(), resize);
 
   // get width of container and resize svg to fit it
   function resize() {
     var targetWidth = parseInt(container.style("width"));
     svg.attr("width", targetWidth);
     svg.attr("height", Math.round(targetWidth / aspect));
+    // if svgs are absolutely positioned (for layering, etc.)
+    // size the parent container to ensure proper layout
+    if (svg.style('position') === 'absolute') {
+      container.style('height', Math.round(targetWidth / aspect) + 'px');
+    }
   }
 }
 
