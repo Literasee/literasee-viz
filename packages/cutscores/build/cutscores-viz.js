@@ -757,26 +757,26 @@ var index$6 = camelCase;
 function responsivefy(svg) {
   // get container + svg aspect ratio
   var container = d3.select(svg.node().parentNode),
-    width = parseInt(svg.style("width")),
-    height = parseInt(svg.style("height")),
+    width = parseInt(svg.style('width')),
+    height = parseInt(svg.style('height')),
     aspect = width / height;
 
   // add viewBox and preserveAspectRatio properties,
   // and call resize so that svg resizes on inital page load
   svg
-    .attr("viewBox", "0 0 " + width + " " + height)
-    .attr("preserveAspectRatio", "xMinYMid")
+    .attr('viewBox', '0 0 ' + width + ' ' + height)
+    .attr('preserveAspectRatio', 'xMinYMid')
     .call(resize);
 
   // ensure a unique listener is created for every svg passed in
   // even if they share the same parent container
-  d3.select(window).on("resize." + container.attr("id") + Date.now(), resize);
+  d3.select(window).on('resize.' + container.attr('id') + Date.now(), resize);
 
   // get width of container and resize svg to fit it
   function resize() {
-    var targetWidth = parseInt(container.style("width"));
-    svg.attr("width", targetWidth);
-    svg.attr("height", Math.round(targetWidth / aspect));
+    var targetWidth = parseInt(container.style('width'));
+    svg.attr('width', targetWidth);
+    svg.attr('height', Math.round(targetWidth / aspect));
     // if svgs are absolutely positioned (for layering, etc.)
     // size the parent container to ensure proper layout
     if (svg.style('position') === 'absolute') {
@@ -18290,8 +18290,7 @@ function drawScores (selection, cuts, x, y, ratio, scores) {
       .attr('cx', function (d) {
         return x(_.find(cuts, {test: d.test, year: d.year}).level);
       })
-      .attr('cy', function (d) { return y(d.score); })
-      .style('fill', function (d) { return interp(+d.sgp / 100); });
+      .attr('cy', function (d) { return y(d.score); });
 }
 
 exports.cutscores = cutscores;

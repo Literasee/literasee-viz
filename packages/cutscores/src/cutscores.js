@@ -296,6 +296,5 @@ function drawScores (selection, cuts, x, y, ratio = 1, scores) {
       .attr('cx', d => {
         return x(_.find(cuts, {test: d.test, year: d.year}).level);
       })
-      .attr('cy', d => y(d.score))
-      .style('fill', d => interp(+d.sgp / 100));
+      .attr('cy', d => y(d.score));
 }
