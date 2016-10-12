@@ -119,7 +119,6 @@ function createScales (cuts) {
   };
 }
 
-
 function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
   var colors = ['#525252', '#737373', '#969696', '#BDBDBD', '#D9D9D9'];
 
@@ -283,51 +282,50 @@ function drawLines (selection, scores, x, y) {
 }
 
 function drawTrajectories (selection, scores, x, y, cuts) {
-  var lastScore = scores[scores.length - 1];
-  var traj = lastScore.trajectories;
+  scores.forEach(score => {
+    if (!score.trajectories) return;
 
-  if (!traj) return;
+    var svg = selection
+      .append('svg')
+        .style('position', 'absolute')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .call(responsivefy)
+      .append('g')
+        .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-  var svg = selection
-    .append('svg')
-      .style('position', 'absolute')
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .call(responsivefy)
-    .append('g')
-      .attr('transform', `translate(${margin.left}, ${margin.top})`);
+    var data = score.trajectories.map((t, j) => {
+      return [
+        _.merge(_.clone(score), { percentile: j + 1 })
+      ].concat(t.map((num, i, list) => {
+        return {
+          level: cuts[cuts.length - 1 - list.length + i].level,
+          score: num,
+          percentile: j + 1
+        }
+      }));
+    });
 
-  var data = traj.map((t, j) => {
-    return [
-      _.merge(_.clone(lastScore), { percentile: j + 1 })
-    ].concat(t.map((num, i, list) => {
-      return {
-        level: cuts[cuts.length - 1 - list.length + i].level,
-        score: num,
-        percentile: j + 1
-      }
-    }));
+    var line = d3.line()
+      .x(d => x(d.level))
+      .y(d => y(d.score))
+      .curve(d3.curveCatmullRom.alpha(0.5));
+
+    svg
+      .selectAll('.trajectory')
+      .data(data)
+      .enter()
+      .append('path')
+        .attr('id', d => 'test' + score.level + '_trajectory_' + d[0].percentile)
+        .attr('class', 'trajectory')
+        .attr('d', d => line(d))
+        .style('stroke', d => {
+          return interp(+d[0].percentile / 100);
+        })
+        .style('stroke-width', 2)
+        .style('stroke-opacity', 0)
+        .style('fill', 'none');
   });
-
-  var line = d3.line()
-    .x(d => x(d.level))
-    .y(d => y(d.score))
-    .curve(d3.curveCatmullRom.alpha(0.5));
-
-  svg
-    .selectAll('.line2')
-    .data(data)
-    .enter()
-    .append('path')
-      .attr('id', d => 'line' + d[0].percentile)
-      .attr('class', 'line2')
-      .attr('d', d => line(d))
-      .style('stroke', d => {
-        return interp(+d[0].percentile / 100);
-      })
-      .style('stroke-width', 2)
-      .style('stroke-opacity', 0)
-      .style('fill', 'none');
 }
 
 function drawScores (selection, scores, x, y) {
@@ -340,6 +338,24 @@ function drawScores (selection, scores, x, y) {
     .append('g')
       .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
+  function turnOn (el) {
+    d3.select(el)
+      .attr('data-is-selected', true)
+      .style('stroke-width', 4)
+      .style('cursor', 'ns-resize');
+
+    if (d3.select(el).attr('data-trajectory-percentile') === null) {
+      d3.select(el).attr('data-trajectory-percentile', 50);
+    }
+  }
+
+  function turnOff (els) {
+    d3.selectAll(els)
+      .attr('data-is-selected', false)
+      .style('stroke-width', 2)
+      .style('cursor', 'default');
+  }
+
   svg
     .selectAll('circle')
     .data(scores)
@@ -347,5 +363,46 @@ function drawScores (selection, scores, x, y) {
     .append('circle')
       .attr('r', 10)
       .attr('cx', d => x(d.level))
-      .attr('cy', d => y(d.score));
+      .attr('cy', d => y(d.score))
+      .style('fill', 'white')
+      .style('stroke', '#666')
+      .style('stroke-width', 2)
+      .style('pointer-events', 'auto') // needed because parent ignores events
+      .on('mouseover mouseout', function (d) {
+        if (!d.trajectories) return;
+        if (d3.select(this).attr('data-is-selected') === 'true') return;
+
+        d3.select(this)
+          .style('cursor', d3.event.type === 'mouseover' ? 'pointer' : 'default');
+      })
+      .on('click', function (d, i, collection) {
+        if (!d.trajectories) return;
+
+        var c = d3.select(this);
+        var isSelected = c.attr('data-is-selected') !== 'true';
+
+        turnOff(collection);
+        d3.selectAll('.trajectory').style('stroke-opacity', 0);
+
+        if (isSelected) {
+          turnOn(this);
+          var tp = d3.select(this).attr('data-trajectory-percentile');
+          d3.select('#test' + d.level + '_trajectory_' + tp).style('stroke-opacity', 1);
+        }
+      })
+      .on('wheel', function (d) {
+        var c = d3.select(this);
+
+        if (c.attr('data-is-selected') !== 'true') return;
+
+        d3.event.preventDefault();
+        d3.selectAll('.trajectory').style('stroke-opacity', 0);
+
+        var tp = +(c.attr('data-trajectory-percentile'));
+        var tpNew = tp + d3.event.deltaY;
+        tpNew = Math.min(99, Math.max(1, tpNew));
+        c.attr('data-trajectory-percentile', tpNew);
+        d3.select('#test' + d.level + '_trajectory_' + tpNew).style('stroke-opacity', 1);
+      });
+
 }
