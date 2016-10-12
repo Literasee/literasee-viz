@@ -18054,8 +18054,9 @@ var cutscores = function (selector, args) {
         var x$1 = ref$2.x;
         var y$1 = ref$2.y;
         container.call(drawBackground, cutscoreSet, x$1, y$1, 1, false);
-        if (pymChild) { pymChild.sendHeight(); }
       }
+
+      if (pymChild) { pymChild.sendHeight(); }
 
     });
 }
@@ -18307,11 +18308,6 @@ function drawTrajectories (selection, scores, x, y, cuts) {
       .style('fill', 'none');
 }
 
-window.slide = function (event) {
-  d3.selectAll('.line2').style('stroke-opacity', 0);
-  d3.select('#line' + event.target.value).style('stroke-opacity', 1);
-}
-
 function drawScores (selection, scores, x, y) {
   var svg = selection
     .append('svg')
@@ -18330,8 +18326,6 @@ function drawScores (selection, scores, x, y) {
       .attr('r', 10)
       .attr('cx', function (d) { return x(d.level); })
       .attr('cy', function (d) { return y(d.score); });
-
-  if (pymChild) { pymChild.sendHeight(); }
 }
 
 exports.cutscores = cutscores;

@@ -79,8 +79,9 @@ export default function (selector = 'body', args) {
         cutscoreSet.cuts = createGutterCuts(cutscoreSet.cuts);
         const { x, y } = createScales(cutscoreSet.cuts);
         container.call(drawBackground, cutscoreSet, x, y, 1, false);
-        if (pymChild) pymChild.sendHeight();
       }
+
+      if (pymChild) pymChild.sendHeight();
 
     });
 }
@@ -347,6 +348,4 @@ function drawScores (selection, scores, x, y) {
       .attr('r', 10)
       .attr('cx', d => x(d.level))
       .attr('cy', d => y(d.score));
-
-  if (pymChild) pymChild.sendHeight();
 }
