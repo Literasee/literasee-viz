@@ -5,5 +5,6 @@ module.exports = {
     'build/*'
   ],
   ui: false,
-  notify: false
+  notify: false,
+  ghostMode: false
 };
