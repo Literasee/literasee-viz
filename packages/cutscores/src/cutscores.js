@@ -71,6 +71,7 @@ export default function (selector = 'body', args) {
 
         layer
           .call(drawLines, scores, x, y)
+          .call(drawTrajectories, scores, x, y, allCuts)
           .call(drawScores, scores, x, y);
 
       } else {
@@ -280,6 +281,59 @@ function drawLines (selection, scores, x, y) {
       .style('stroke', d => interp(+d.sgp / 100))
       .style('stroke-width', 3)
       .style('fill', 'none');
+}
+
+function drawTrajectories (selection, scores, x, y, cuts) {
+  var lastScore = scores[scores.length - 1];
+  var traj = lastScore.trajectories;
+
+  if (!traj) return;
+
+  var svg = selection
+    .append('svg')
+      .style('position', 'absolute')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .call(responsivefy)
+    .append('g')
+      .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+  var data = traj.map((t, j) => {
+    return [
+      _.merge(_.clone(lastScore), { percentile: j + 1 })
+    ].concat(t.map((num, i, list) => {
+      return {
+        level: cuts[cuts.length - 1 - list.length + i].level,
+        score: num,
+        percentile: j + 1
+      }
+    }));
+  });
+
+  var line = d3.line()
+    .x(d => x(d.level))
+    .y(d => y(d.score))
+    .curve(d3.curveCatmullRom.alpha(0.5));
+
+  svg
+    .selectAll('.line2')
+    .data(data)
+    .enter()
+    .append('path')
+      .attr('id', d => 'line' + d[0].percentile)
+      .attr('class', 'line2')
+      .attr('d', d => line(d))
+      .style('stroke', d => {
+        return interp(+d[0].percentile / 100);
+      })
+      .style('stroke-width', 2)
+      .style('stroke-opacity', 0)
+      .style('fill', 'none');
+}
+
+window.slide = function (event) {
+  d3.selectAll('.line2').style('stroke-opacity', 0);
+  d3.select('#line' + event.target.value).style('stroke-opacity', 1);
 }
 
 function drawScores (selection, scores, x, y) {

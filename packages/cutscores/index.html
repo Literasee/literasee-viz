@@ -24,9 +24,12 @@
 </head>
 <body style="margin: 0 4em">
 
-  <!-- <h2>State data only</h2>
-  <div id="state"></div> -->
-  <h2>Standard grade progression</h2>
+  <h2>State data only</h2>
+  <div id="state"></div>
+  <div style="display: flex">
+    <h2 style="margin-right: 2em">Standard grade progression</h2>
+    <input style="width: 300px" type="range" id="slider" value="99" min="1" max="99" oninput="slide(event)">
+  </div>
   <div id="standard"></div>
   <h2>Grade 5 repeat</h2>
   <div id="repeat"></div>
@@ -41,7 +44,7 @@
   <script src="build/cutscores-viz.js"></script>
 
   <script>
-    // d3.cutscores('#state');
+    d3.cutscores('#state');
     d3.cutscores('#standard', {student: 'standard'});
     d3.cutscores('#repeat', {student: 'repeat'});
     d3.cutscores('#skipped', {student: 'skipped'});
