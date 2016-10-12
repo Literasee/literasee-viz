@@ -329,11 +329,6 @@ function drawTrajectories (selection, scores, x, y, cuts) {
       .style('fill', 'none');
 }
 
-window.slide = function (event) {
-  d3.selectAll('.line2').style('stroke-opacity', 0);
-  d3.select('#line' + event.target.value).style('stroke-opacity', 1);
-}
-
 function drawScores (selection, scores, x, y) {
   var svg = selection
     .append('svg')
