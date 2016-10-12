@@ -17974,7 +17974,7 @@ var margin = { top: 0, right: 0, bottom: 30, left: 0 };
 var width = w - margin.left - margin.right;
 var height = h - margin.top - margin.bottom;
 var interp = d3.interpolateRgb('red', 'blue');
-
+if (window['pym']) { var pymChild = new pym.Child(); }
 
 var cutscores = function (selector, args) {
   if ( selector === void 0 ) selector = 'body';
@@ -18054,6 +18054,7 @@ var cutscores = function (selector, args) {
         var x$1 = ref$2.x;
         var y$1 = ref$2.y;
         container.call(drawBackground, cutscoreSet, x$1, y$1, 1, false);
+        if (pymChild) { pymChild.sendHeight(); }
       }
 
     });
@@ -18225,9 +18226,6 @@ function drawBackground (selection, data, x, y, ratio, absolute) {
 
   // next line only needed if chart will be updated
   // bands.attr('d', area);
-
-  // alert parent of new size
-  if (window['pym']) { new pym.Child().sendHeight(); }
 }
 
 function drawLines (selection, scores, x, y) {
@@ -18332,6 +18330,8 @@ function drawScores (selection, scores, x, y) {
       .attr('r', 10)
       .attr('cx', function (d) { return x(d.level); })
       .attr('cy', function (d) { return y(d.score); });
+
+  if (pymChild) { pymChild.sendHeight(); }
 }
 
 exports.cutscores = cutscores;

@@ -10,7 +10,7 @@ var margin = { top: 0, right: 0, bottom: 30, left: 0 };
 var width = w - margin.left - margin.right;
 var height = h - margin.top - margin.bottom;
 var interp = d3.interpolateRgb('red', 'blue');
-
+if (window['pym']) var pymChild = new pym.Child();
 
 export default function (selector = 'body', args) {
   const container = d3.select(selector).style('position', 'relative');
@@ -79,6 +79,7 @@ export default function (selector = 'body', args) {
         cutscoreSet.cuts = createGutterCuts(cutscoreSet.cuts);
         const { x, y } = createScales(cutscoreSet.cuts);
         container.call(drawBackground, cutscoreSet, x, y, 1, false);
+        if (pymChild) pymChild.sendHeight();
       }
 
     });
@@ -247,9 +248,6 @@ function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
 
   // next line only needed if chart will be updated
   // bands.attr('d', area);
-
-  // alert parent of new size
-  if (window['pym']) new pym.Child().sendHeight();
 }
 
 function drawLines (selection, scores, x, y) {
@@ -354,4 +352,6 @@ function drawScores (selection, scores, x, y) {
       .attr('r', 10)
       .attr('cx', d => x(d.level))
       .attr('cy', d => y(d.score));
+
+  if (pymChild) pymChild.sendHeight();
 }
