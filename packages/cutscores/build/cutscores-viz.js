@@ -17988,6 +17988,40 @@ var chartInit = function (w, h, margin) {
   }
 }
 
+var addGutterCuts = function (cuts, gutter) {
+  if ( gutter === void 0 ) gutter = 0.5;
+
+  // to create a "gutter" and prevent our min and max values from being plotted
+  // right on the edges of our chart, we need to create some fake data entries
+  // we will essentially find the min and max grades and create entries
+  // slightly below and above them, respectively
+
+  // 0 to 1, how much of a "grade" should the gutters represent?
+  var n = cuts.length;
+
+  return [].concat(
+    _.merge(_.clone(cuts[0]), {level: -gutter, test: null}),
+    cuts.map(function (cut, i) {
+      return _.merge(_.clone(cut), {level: i})
+    }),
+    _.merge(_.clone(cuts[n - 1]), {level: n - gutter, test: null})
+  );
+}
+
+var createCutScales = function (cuts, width, height) {
+  return {
+    x: d3.scaleLinear()
+         .domain(d3.extent(_.map(cuts, 'level')))
+         .range([0, width]),
+    y: d3.scaleLinear()
+         .domain([
+           d3.min(cuts, function (d) { return d.loss; }),
+           d3.max(cuts, function (d) { return d.hoss; })
+         ])
+         .range([height, 0])
+  };
+}
+
 var interp = d3.interpolateRgb('red', 'blue');
 if (window['pym']) { var pymChild = new pym.Child(); }
 
@@ -18025,9 +18059,9 @@ var cutscores = function (selector, args) {
           // it can remove (skipped) or duplicate (repeated) tests
           cutscoreSet.cuts = mergeCutsAndScores(cutscoreSet.cuts, subjectData);
           // create level props and dummy tests at beginning and end of list
-          cutscoreSet.cuts = createGutterCuts(cutscoreSet.cuts);
+          cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
           // create scales using fully transformed list of cuts/tests
-          var ref = createScales(cutscoreSet.cuts);
+          var ref = createCutScales(cutscoreSet.cuts, width, height);
           var x = ref.x;
           var y = ref.y;
 
@@ -18049,14 +18083,14 @@ var cutscores = function (selector, args) {
         });
 
         allCuts = mergeCutsAndScores(allCuts, subjectData);
-        allCuts = createGutterCuts(allCuts);
+        allCuts = addGutterCuts(allCuts);
         var scores = subjectData.map(function (d) {
           return _.merge(
             d,
             { level: _.find(allCuts, {test: d.test, year: d.year}).level }
           );
         })
-        var ref$1 = createScales(allCuts);
+        var ref$1 = createCutScales(allCuts, width, height);
         var x = ref$1.x;
         var y = ref$1.y;
 
@@ -18073,8 +18107,8 @@ var cutscores = function (selector, args) {
 
       } else {
         var cutscoreSet = stateData.pop();
-        cutscoreSet.cuts = createGutterCuts(cutscoreSet.cuts);
-        var ref$2 = createScales(cutscoreSet.cuts);
+        cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
+        var ref$2 = createCutScales(cutscoreSet.cuts, width, height);
         var x$1 = ref$2.x;
         var y$1 = ref$2.y;
         container.call(drawBackground, cutscoreSet, x$1, y$1, 1, false);
@@ -18083,39 +18117,6 @@ var cutscores = function (selector, args) {
       if (pymChild) { pymChild.sendHeight(); }
 
     });
-}
-
-function createGutterCuts (cuts) {
-  // to create a "gutter" and prevent our min and max values from being plotted
-  // right on the edges of our chart, we need to create some fake data entries
-  // we will essentially find the min and max grades and create entries
-  // slightly below and above them, respectively
-
-  // 0 to 1, how much of a "grade" should the gutters represent?
-  var gutter = 0.5;
-  var n = cuts.length;
-
-  return [].concat(
-    _.merge(_.clone(cuts[0]), {level: -gutter, test: null}),
-    cuts.map(function (cut, i) {
-      return _.merge(_.clone(cut), {level: i})
-    }),
-    _.merge(_.clone(cuts[n - 1]), {level: n - gutter, test: null})
-  );
-}
-
-function createScales (cuts) {
-  return {
-    x: d3.scaleLinear()
-         .domain(d3.extent(_.map(cuts, 'level')))
-         .range([0, width]),
-    y: d3.scaleLinear()
-         .domain([
-           d3.min(cuts, function (n) { return n.loss; }),
-           d3.max(cuts, function (n) { return n.hoss; })
-         ])
-         .range([height, 0])
-  };
 }
 
 function drawBackground (selection, data, x, y, ratio, absolute) {

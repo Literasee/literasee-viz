@@ -9,7 +9,8 @@ var interp = d3.interpolateRgb('red', 'blue');
 if (window['pym']) var pymChild = new pym.Child();
 
 import chartInit from './chartInit';
-
+import addGutterCuts from './addGutterCuts';
+import createCutScales from './createCutScales';
 
 const w = 800;
 const h = 400;
@@ -41,9 +42,9 @@ export default function (selector = 'body', args) {
           // it can remove (skipped) or duplicate (repeated) tests
           cutscoreSet.cuts = mergeCutsAndScores(cutscoreSet.cuts, subjectData);
           // create level props and dummy tests at beginning and end of list
-          cutscoreSet.cuts = createGutterCuts(cutscoreSet.cuts);
+          cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
           // create scales using fully transformed list of cuts/tests
-          const { x, y } = createScales(cutscoreSet.cuts);
+          const { x, y } = createCutScales(cutscoreSet.cuts, width, height);
 
           if (ratio < 1) {
             x.range([0, w * ratio - margin.left - margin.right]);
@@ -63,14 +64,14 @@ export default function (selector = 'body', args) {
         });
 
         allCuts = mergeCutsAndScores(allCuts, subjectData);
-        allCuts = createGutterCuts(allCuts);
+        allCuts = addGutterCuts(allCuts);
         const scores = subjectData.map(d => {
           return _.merge(
             d,
             { level: _.find(allCuts, {test: d.test, year: d.year}).level }
           );
         })
-        const { x, y } = createScales(allCuts);
+        const { x, y } = createCutScales(allCuts, width, height);
 
         var layer = container
           .append('div')
@@ -85,47 +86,14 @@ export default function (selector = 'body', args) {
 
       } else {
         const cutscoreSet = stateData.pop();
-        cutscoreSet.cuts = createGutterCuts(cutscoreSet.cuts);
-        const { x, y } = createScales(cutscoreSet.cuts);
+        cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
+        const { x, y } = createCutScales(cutscoreSet.cuts, width, height);
         container.call(drawBackground, cutscoreSet, x, y, 1, false);
       }
 
       if (pymChild) pymChild.sendHeight();
 
     });
-}
-
-function createGutterCuts (cuts) {
-  // to create a "gutter" and prevent our min and max values from being plotted
-  // right on the edges of our chart, we need to create some fake data entries
-  // we will essentially find the min and max grades and create entries
-  // slightly below and above them, respectively
-
-  // 0 to 1, how much of a "grade" should the gutters represent?
-  var gutter = 0.5;
-  var n = cuts.length;
-
-  return [].concat(
-    _.merge(_.clone(cuts[0]), {level: -gutter, test: null}),
-    cuts.map((cut, i) => {
-      return _.merge(_.clone(cut), {level: i})
-    }),
-    _.merge(_.clone(cuts[n - 1]), {level: n - gutter, test: null})
-  );
-}
-
-function createScales (cuts) {
-  return {
-    x: d3.scaleLinear()
-         .domain(d3.extent(_.map(cuts, 'level')))
-         .range([0, width]),
-    y: d3.scaleLinear()
-         .domain([
-           d3.min(cuts, n => n.loss),
-           d3.max(cuts, n => n.hoss)
-         ])
-         .range([height, 0])
-  };
 }
 
 function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
