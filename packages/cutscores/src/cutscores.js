@@ -71,7 +71,7 @@ export default function (selector = 'body', args) {
 
         layer
           .call(drawLines, scores, x, y)
-          .call(drawTrajectories, scores, x, y, allCuts)
+          .call(drawTrajectories, scores, x, y)
           .call(drawScores, scores, x, y);
 
       } else {
@@ -281,7 +281,7 @@ function drawLines (selection, scores, x, y) {
       .style('fill', 'none');
 }
 
-function drawTrajectories (selection, scores, x, y, cuts) {
+function drawTrajectories (selection, scores, x, y) {
   scores.forEach(score => {
     if (!score.trajectories) return;
 
@@ -299,7 +299,7 @@ function drawTrajectories (selection, scores, x, y, cuts) {
         _.merge(_.clone(score), { percentile: j + 1 })
       ].concat(t.map((num, i, list) => {
         return {
-          level: cuts[cuts.length - 1 - list.length + i].level,
+          level: score.level + i + 1,
           score: num,
           percentile: j + 1
         }
