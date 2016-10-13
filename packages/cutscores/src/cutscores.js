@@ -12,6 +12,7 @@ import chartInit from './chartInit';
 import addGutterCuts from './addGutterCuts';
 import createCutScales from './createCutScales';
 import drawGrowthLines from './drawGrowthLines';
+import drawTrajectories from './drawTrajectories';
 
 const w = 800;
 const h = 400;
@@ -82,8 +83,9 @@ export default function (selector = 'body', args) {
 
         // create a new, absolutely positioned SVG to house the growth lines
         createSVG(layer).call(drawGrowthLines, scores, x, y, interp);
+        // create a new, absolutely positioned SVG to house the trajectory lines
+        createSVG(layer).call(drawTrajectories, scores, x, y, interp);
         layer
-          .call(drawTrajectories, scores, x, y)
           .call(drawScores, scores, x, y);
 
       } else {
@@ -221,46 +223,6 @@ function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
 
   // next line only needed if chart will be updated
   // bands.attr('d', area);
-}
-
-function drawTrajectories (selection, scores, x, y) {
-  scores.forEach(score => {
-    if (!score.trajectories) return;
-
-    var svg = createSVG(selection);
-
-    var data = score.trajectories.map((t, j) => {
-      return [
-        _.merge(_.clone(score), { percentile: j + 1 })
-      ].concat(t.map((num, i, list) => {
-        return {
-          level: score.level + i + 1,
-          score: num,
-          percentile: j + 1
-        }
-      }));
-    });
-
-    var line = d3.line()
-      .x(d => x(d.level))
-      .y(d => y(d.score))
-      .curve(d3.curveCatmullRom.alpha(0.5));
-
-    svg
-      .selectAll('.trajectory')
-      .data(data)
-      .enter()
-      .append('path')
-        .attr('id', d => 'test' + score.level + '_trajectory_' + d[0].percentile)
-        .attr('class', 'trajectory')
-        .attr('d', d => line(d))
-        .style('stroke', d => {
-          return interp(+d[0].percentile / 100);
-        })
-        .style('stroke-width', 2)
-        .style('stroke-opacity', 0)
-        .style('fill', 'none');
-  });
 }
 
 function drawScores (selection, scores, x, y) {
