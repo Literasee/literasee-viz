@@ -18022,6 +18022,28 @@ var createCutScales = function (cuts, width, height) {
   };
 }
 
+var drawGrowthLines = function (selection, scores, x, y, colors) {
+  var line = d3.line()
+    .x(function (d) { return x(d.level); })
+    .y(function (d) { return y(d.score); })
+    .curve(d3.curveCatmullRom.alpha(0.5));
+
+  selection
+    .selectAll('.line')
+    .data(scores)
+    .enter()
+    .append('path')
+      .attr('class', 'line')
+      .attr('d', function (d, i) {
+        if (i + 1 < scores.length && scores[i + 1].sgp) {
+          return line(scores.slice(i, i + 2));
+        }
+      })
+      .style('stroke', function (d) { return colors(+d.sgp / 100); })
+      .style('stroke-width', 3)
+      .style('fill', 'none');
+}
+
 var interp = d3.interpolateRgb('red', 'blue');
 if (window['pym']) { var pymChild = new pym.Child(); }
 
@@ -18100,8 +18122,9 @@ var cutscores = function (selector, args) {
             .style('position', 'relative')
             .style('pointer-events', 'none')
 
+        // create a new, absolutely positioned SVG to house the growth lines
+        createSVG(layer).call(drawGrowthLines, scores, x, y, interp);
         layer
-          .call(drawLines, scores, x, y)
           .call(drawTrajectories, scores, x, y)
           .call(drawScores, scores, x, y);
 
@@ -18245,30 +18268,6 @@ function drawBackground (selection, data, x, y, ratio, absolute) {
 
   // next line only needed if chart will be updated
   // bands.attr('d', area);
-}
-
-function drawLines (selection, scores, x, y) {
-  var svg = createSVG(selection);
-
-  var line = d3.line()
-    .x(function (d) { return x(d.level); })
-    .y(function (d) { return y(d.score); })
-    .curve(d3.curveCatmullRom.alpha(0.5));
-
-  svg
-    .selectAll('.line')
-    .data(scores)
-    .enter()
-    .append('path')
-      .attr('class', 'line')
-      .attr('d', function (d, i) {
-        if (i + 1 < scores.length && scores[i + 1].sgp) {
-          return line(scores.slice(i, i + 2));
-        }
-      })
-      .style('stroke', function (d) { return interp(+d.sgp / 100); })
-      .style('stroke-width', 3)
-      .style('fill', 'none');
 }
 
 function drawTrajectories (selection, scores, x, y) {

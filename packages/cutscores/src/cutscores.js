@@ -11,6 +11,7 @@ if (window['pym']) var pymChild = new pym.Child();
 import chartInit from './chartInit';
 import addGutterCuts from './addGutterCuts';
 import createCutScales from './createCutScales';
+import drawGrowthLines from './drawGrowthLines';
 
 const w = 800;
 const h = 400;
@@ -79,8 +80,9 @@ export default function (selector = 'body', args) {
             .style('position', 'relative')
             .style('pointer-events', 'none')
 
+        // create a new, absolutely positioned SVG to house the growth lines
+        createSVG(layer).call(drawGrowthLines, scores, x, y, interp);
         layer
-          .call(drawLines, scores, x, y)
           .call(drawTrajectories, scores, x, y)
           .call(drawScores, scores, x, y);
 
@@ -219,30 +221,6 @@ function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
 
   // next line only needed if chart will be updated
   // bands.attr('d', area);
-}
-
-function drawLines (selection, scores, x, y) {
-  var svg = createSVG(selection);
-
-  var line = d3.line()
-    .x(d => x(d.level))
-    .y(d => y(d.score))
-    .curve(d3.curveCatmullRom.alpha(0.5));
-
-  svg
-    .selectAll('.line')
-    .data(scores)
-    .enter()
-    .append('path')
-      .attr('class', 'line')
-      .attr('d', (d, i) => {
-        if (i + 1 < scores.length && scores[i + 1].sgp) {
-          return line(scores.slice(i, i + 2));
-        }
-      })
-      .style('stroke', d => interp(+d.sgp / 100))
-      .style('stroke-width', 3)
-      .style('fill', 'none');
 }
 
 function drawTrajectories (selection, scores, x, y) {
