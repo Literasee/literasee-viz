@@ -4,13 +4,22 @@ import { default as loadData } from './loadData';
 import mergeCutsAndScores from './mergeCutsAndScores';
 import { responsivefy } from './utils';
 
-var w = 800;
-var h = 400;
-var margin = { top: 0, right: 0, bottom: 30, left: 0 };
-var width = w - margin.left - margin.right;
-var height = h - margin.top - margin.bottom;
+
 var interp = d3.interpolateRgb('red', 'blue');
 if (window['pym']) var pymChild = new pym.Child();
+
+import chartInit from './chartInit';
+
+
+const w = 800;
+const h = 400;
+const margin = { top: 0, right: 0, bottom: 30, left: 0 };
+
+const {
+  width,
+  height,
+  createSVG
+} = chartInit(w, h, margin);
 
 export default function (selector = 'body', args) {
   const container = d3.select(selector).style('position', 'relative');
@@ -126,14 +135,8 @@ function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
   var numLevels = data.levels.length;
 
   // base with margins
-  var svg = selection
-    .append('svg')
-      .style('position', absolute && 'absolute')
-      .attr('width', width * ratio + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .call(responsivefy)
-    .append('g')
-      .attr('transform', `translate(${margin.left}, ${margin.top})`);
+  var position = !absolute ? 'relative' : 'absolute';
+  var svg = createSVG(selection, position, ratio);
 
   // create an X axis using the original length of cut_scores as number of ticks
   var xAxis = d3.axisBottom(x)
@@ -251,14 +254,7 @@ function drawBackground (selection, data, x, y, ratio = 1, absolute = true) {
 }
 
 function drawLines (selection, scores, x, y) {
-  var svg = selection
-    .append('svg')
-      .style('position', 'absolute')
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .call(responsivefy)
-    .append('g')
-      .attr('transform', `translate(${margin.left}, ${margin.top})`);
+  var svg = createSVG(selection);
 
   var line = d3.line()
     .x(d => x(d.level))
@@ -285,14 +281,7 @@ function drawTrajectories (selection, scores, x, y) {
   scores.forEach(score => {
     if (!score.trajectories) return;
 
-    var svg = selection
-      .append('svg')
-        .style('position', 'absolute')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-        .call(responsivefy)
-      .append('g')
-        .attr('transform', `translate(${margin.left}, ${margin.top})`);
+    var svg = createSVG(selection);
 
     var data = score.trajectories.map((t, j) => {
       return [
@@ -329,14 +318,7 @@ function drawTrajectories (selection, scores, x, y) {
 }
 
 function drawScores (selection, scores, x, y) {
-  var svg = selection
-    .append('svg')
-      .style('position', 'absolute')
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .call(responsivefy)
-    .append('g')
-      .attr('transform', `translate(${margin.left}, ${margin.top})`);
+  var svg = createSVG(selection);
 
   function displayTrajectory (d) {
     var c = d3.select(this);
