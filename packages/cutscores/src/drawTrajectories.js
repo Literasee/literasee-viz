@@ -1,4 +1,4 @@
-export default function (selection, scores, x, y, colors) {
+export default function (svg, scores, x, y, colors) {
   const line = d3.line()
     .x(d => x(d.level))
     .y(d => y(d.score))
@@ -19,7 +19,7 @@ export default function (selection, scores, x, y, colors) {
       }));
     });
 
-    selection
+    svg
       .selectAll('.trajectory' + score.level)
       .data(data)
       .enter()

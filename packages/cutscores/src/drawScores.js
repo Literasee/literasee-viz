@@ -1,4 +1,4 @@
-export default function (selection, scores, x, y) {
+export default function (svg, scores, x, y) {
   function displayTrajectory (d) {
     var c = d3.select(this);
 
@@ -37,7 +37,7 @@ export default function (selection, scores, x, y) {
       .on('.drag', null);
   }
 
-  selection
+  svg
     .selectAll('circle')
     .data(scores)
     .enter()

@@ -1,10 +1,10 @@
-export default function (selection, scores, x, y, colors) {
+export default function (svg, scores, x, y, colors) {
   var line = d3.line()
     .x(d => x(d.level))
     .y(d => y(d.score))
     .curve(d3.curveCatmullRom.alpha(0.5));
 
-  selection
+  svg
     .selectAll('.line')
     .data(scores)
     .enter()

@@ -18143,13 +18143,13 @@ var drawBackground = function (svg, data, x, y, height) {
   // bands.attr('d', area);
 }
 
-var drawGrowthLines = function (selection, scores, x, y, colors) {
+var drawGrowthLines = function (svg, scores, x, y, colors) {
   var line = d3.line()
     .x(function (d) { return x(d.level); })
     .y(function (d) { return y(d.score); })
     .curve(d3.curveCatmullRom.alpha(0.5));
 
-  selection
+  svg
     .selectAll('.line')
     .data(scores)
     .enter()
@@ -18165,7 +18165,7 @@ var drawGrowthLines = function (selection, scores, x, y, colors) {
       .style('fill', 'none');
 }
 
-var drawTrajectories = function (selection, scores, x, y, colors) {
+var drawTrajectories = function (svg, scores, x, y, colors) {
   var line = d3.line()
     .x(function (d) { return x(d.level); })
     .y(function (d) { return y(d.score); })
@@ -18186,7 +18186,7 @@ var drawTrajectories = function (selection, scores, x, y, colors) {
       }));
     });
 
-    selection
+    svg
       .selectAll('.trajectory' + score.level)
       .data(data)
       .enter()
@@ -18203,7 +18203,7 @@ var drawTrajectories = function (selection, scores, x, y, colors) {
   });
 }
 
-var drawScores = function (selection, scores, x, y) {
+var drawScores = function (svg, scores, x, y) {
   function displayTrajectory (d) {
     var c = d3.select(this);
 
@@ -18242,7 +18242,7 @@ var drawScores = function (selection, scores, x, y) {
       .on('.drag', null);
   }
 
-  selection
+  svg
     .selectAll('circle')
     .data(scores)
     .enter()
