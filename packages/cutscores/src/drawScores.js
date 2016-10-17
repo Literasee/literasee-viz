@@ -5,12 +5,30 @@ export default function (svg, scores, x, y) {
     if (d3.event.type === 'wheel') d3.event.preventDefault();
 
     d3.selectAll('.trajectory').style('stroke-opacity', 0);
+    d3.select('#trajectory-highlight').remove();
 
     var tp = +(c.attr('data-trajectory-percentile'));
     var tpNew = tp + (d3.event.type === 'wheel' ? d3.event.deltaY : Math.round(-d3.event.dy));
     tpNew = Math.min(99, Math.max(1, tpNew));
     c.attr('data-trajectory-percentile', tpNew);
-    d3.select('#test' + d.level + '_trajectory_' + tpNew).style('stroke-opacity', 1);
+
+    var activeLine = d3.select('#test' + d.level + '_trajectory_' + tpNew);
+    activeLine.style('stroke-opacity', 1);
+
+    svg
+      .append('path')
+      .attr('id', 'trajectory-highlight')
+      .attr('d', activeLine.attr('d'))
+      .attr('fill', 'none')
+      .attr('stroke', window.dashes.color)
+      .attr('stroke-width', window.dashes.width)
+      .attr('stroke-opacity', window.dashes.opacity)
+      .attr('stroke-dasharray', window.dashes.dasharray)
+      .attr('stroke-dashoffset', window.dashes.dashoffset)
+      .transition()
+        .duration(window.dashes.duration)
+        .ease(d3.easeLinear)
+        .attr('stroke-dashoffset', 0);
   }
 
   function turnOn (el, d) {
