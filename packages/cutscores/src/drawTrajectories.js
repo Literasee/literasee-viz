@@ -71,9 +71,14 @@ export default function (svg, scores, x, y, colors) {
     var activeLine = d3.select('#test' + d.level + '_trajectory_' + pct);
     activeLine.style('stroke-opacity', 1);
 
+    // only d actually needs to be set here, the rest are only for live editing
     svg
       .select('#trajectory-highlight')
       .attr('d', activeLine.attr('d'))
+      .attr('stroke', window.dashes.color)
+      .attr('stroke-width', window.dashes.width)
+      .attr('stroke-opacity', window.dashes.opacity)
+      .attr('stroke-dasharray', window.dashes.dasharray)
       .call(animateDashes);
   }
 }
