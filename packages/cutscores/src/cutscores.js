@@ -93,9 +93,13 @@ export default function (selector = 'body', args) {
         // create a new, absolutely positioned SVG to house the growth lines
         createSVG(layer).call(drawGrowthLines, scores, x, y, interp);
         // create a new, absolutely positioned SVG to house the trajectory lines
-        createSVG(layer).call(drawTrajectories, scores, x, y, interp);
+        const trajectories = createSVG(layer).call(drawTrajectories, scores, x, y, interp);
         // create a new, absolutely positioned SVG to house the score bubbles
-        createSVG(layer).call(drawScores, scores, x, y);
+        createSVG(layer)
+          .call(drawScores, scores, x, y)
+          .on('scoreSelected trajectoryChanged', () => {
+            trajectories[d3.event.type](d3.event.detail);
+          })
 
       } else {
         const cutscoreSet = stateData.pop();

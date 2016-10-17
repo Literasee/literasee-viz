@@ -18165,6 +18165,19 @@ var drawGrowthLines = function (svg, scores, x, y, colors) {
       .style('fill', 'none');
 }
 
+function animateDashes (sel) {
+  sel
+    .attr('stroke-dashoffset', window.dashes.dashoffset)
+    .attr('stroke-opacity', window.dashes.opacity)
+    .transition()
+      .duration(window.dashes.duration)
+      .ease(d3.easeLinear)
+      .attr('stroke-dashoffset', 0)
+      .on('end', function () {
+        animateDashes(sel);
+      })
+}
+
 var drawTrajectories = function (svg, scores, x, y, colors) {
   var line = d3.line()
     .x(function (d) { return x(d.level); })
@@ -18201,63 +18214,92 @@ var drawTrajectories = function (svg, scores, x, y, colors) {
         .style('stroke-opacity', 0)
         .style('fill', 'none');
   });
-}
 
-var drawScores = function (svg, scores, x, y) {
-  function displayTrajectory (d) {
-    var c = d3.select(this);
+  svg
+    .append('path')
+    .attr('id', 'trajectory-highlight')
+    .attr('fill', 'none')
+    .attr('stroke', window.dashes.color)
+    .attr('stroke-width', window.dashes.width)
+    .attr('stroke-opacity', window.dashes.opacity)
+    .attr('stroke-dasharray', window.dashes.dasharray);
 
-    if (d3.event.type === 'wheel') { d3.event.preventDefault(); }
+  svg.scoreSelected = function (ref) {
+    var el = ref.el;
+    var d = ref.d;
+
+    // we only care if we need to turn things off
+    if (el) { return; }
+
+    svg.selectAll('.trajectory').style('stroke-opacity', 0);
+    svg.select('#trajectory-highlight').interrupt().attr('stroke-opacity', 0);
+  }
+
+  svg.trajectoryChanged = function (ref) {
+    var el = ref.el;
+    var d = ref.d;
+    var pct = ref.pct;
 
     d3.selectAll('.trajectory').style('stroke-opacity', 0);
-    d3.select('#trajectory-highlight').remove();
 
-    var tp = +(c.attr('data-trajectory-percentile'));
-    var tpNew = tp + (d3.event.type === 'wheel' ? d3.event.deltaY : Math.round(-d3.event.dy));
-    tpNew = Math.min(99, Math.max(1, tpNew));
-    c.attr('data-trajectory-percentile', tpNew);
-
-    var activeLine = d3.select('#test' + d.level + '_trajectory_' + tpNew);
+    var activeLine = d3.select('#test' + d.level + '_trajectory_' + pct);
     activeLine.style('stroke-opacity', 1);
 
     svg
-      .append('path')
-      .attr('id', 'trajectory-highlight')
+      .select('#trajectory-highlight')
       .attr('d', activeLine.attr('d'))
-      .attr('fill', 'none')
-      .attr('stroke', window.dashes.color)
-      .attr('stroke-width', window.dashes.width)
-      .attr('stroke-opacity', window.dashes.opacity)
-      .attr('stroke-dasharray', window.dashes.dasharray)
-      .attr('stroke-dashoffset', window.dashes.dashoffset)
-      .transition()
-        .duration(window.dashes.duration)
-        .ease(d3.easeLinear)
-        .attr('stroke-dashoffset', 0);
+      .call(animateDashes);
   }
+}
 
+var drawScores = function (svg, scores, x, y) {
   function turnOn (el, d) {
     var c = d3.select(el);
 
+    // style the score bubble
     c.attr('data-is-selected', true)
       .style('stroke-width', 4)
       .style('cursor', 'ns-resize');
 
-    var tp = c.attr('data-trajectory-percentile');
-    d3.select('#test' + d.level + '_trajectory_' + tp).style('stroke-opacity', 1);
+    // scroll and drag listener
+    function changeTrajectory () {
+      if (d3.event.type === 'wheel') { d3.event.preventDefault(); }
 
-    c.on('wheel', displayTrajectory);
-    c.call(d3.drag().on('drag', displayTrajectory));
+      var delta = d3.event.type === 'wheel' ? d3.event.deltaY : Math.round(-d3.event.dy);
+      var pct = +c.attr('data-trajectory-percentile');
+      var newPct = Math.min(99, Math.max(1, pct + delta));
+
+      if (newPct !== pct) {
+        c.attr('data-trajectory-percentile', newPct);
+        svg.dispatch('trajectoryChanged', {detail: {el: el, d: d, pct: newPct}});
+      }
+    }
+
+    // listen for scroll and drag events on the selected bubble
+    c.on('wheel', changeTrajectory);
+    c.call(d3.drag().on('drag', changeTrajectory));
+
+    // dispatch events
+    svg.dispatch('scoreSelected', {detail: {el: el, d: d}});
+    svg.dispatch('trajectoryChanged', {
+      detail: {
+        el: el,
+        d: d,
+        pct: +c.attr('data-trajectory-percentile')
+      }
+    });
   }
 
   function turnOff (els) {
-    d3.selectAll('.trajectory').style('stroke-opacity', 0);
+    // reset bubble style and remove listeners
     d3.selectAll(els)
       .attr('data-is-selected', false)
       .style('stroke-width', 2)
       .style('cursor', 'default')
       .on('wheel', null)
       .on('.drag', null);
+
+    svg.dispatch('scoreSelected', {detail: {el: null, d: null}});
   }
 
   svg
@@ -18385,9 +18427,13 @@ var cutscores = function (selector, args) {
         // create a new, absolutely positioned SVG to house the growth lines
         createSVG(layer).call(drawGrowthLines, scores, x, y, interp);
         // create a new, absolutely positioned SVG to house the trajectory lines
-        createSVG(layer).call(drawTrajectories, scores, x, y, interp);
+        var trajectories = createSVG(layer).call(drawTrajectories, scores, x, y, interp);
         // create a new, absolutely positioned SVG to house the score bubbles
-        createSVG(layer).call(drawScores, scores, x, y);
+        createSVG(layer)
+          .call(drawScores, scores, x, y)
+          .on('scoreSelected trajectoryChanged', function () {
+            trajectories[d3.event.type](d3.event.detail);
+          })
 
       } else {
         var cutscoreSet = stateData.pop();
