@@ -3,7 +3,6 @@ import { default as loadData } from './loadData';
 
 import mergeCutsAndScores from './mergeCutsAndScores';
 var interp = d3.interpolateRgb('red', 'blue');
-if (window['pym']) var pymChild = new pym.Child();
 
 window.dashes = {
   color: 'white',
@@ -108,7 +107,8 @@ export default function (selector = 'body', args) {
         createSVG(container, 'relative').call(drawBackground, cutscoreSet, x, y, height);
       }
 
-      if (pymChild) pymChild.sendHeight();
-
+    })
+    .then(() => {
+      if (window['pym']) new pym.Child().sendHeight();
     });
 }
