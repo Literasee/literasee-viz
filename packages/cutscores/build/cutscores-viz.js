@@ -18372,24 +18372,28 @@ var cutscores = function (selector, args) {
       var stateData = ref.stateData;
       var studentData = ref.studentData;
 
-
-      // if just rendering cuts draw the background and bail
       if (!studentData) {
         var cutscoreSet = stateData.pop(); // grab the most recent cuts
         cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
         var ref$1 = createCutScales(cutscoreSet.cuts, width, height);
-        var x$1 = ref$1.x;
-        var y$1 = ref$1.y;
+        var x = ref$1.x;
+        var y = ref$1.y;
         // if the cuts are the only thing we're rendering
         // their svg tag needs to be relatively positioned
         // to ensure the chart is included in the page layout
         createSVG(container, 'relative')
-          .call(drawBackground, cutscoreSet, x$1, y$1, height);
-        return;
+          .call(drawBackground, cutscoreSet, x, y, height);
       }
 
-      var allCuts = _.flatten(_.map(stateData, 'cuts'));
+      return {stateData: stateData, studentData: studentData};
+    })
+    .then(function (ref) {
+      var stateData = ref.stateData;
+      var studentData = ref.studentData;
 
+      if (!studentData) { return; }
+
+      var allCuts = _.flatten(_.map(stateData, 'cuts'));
       var subjectData = studentData.data.subjects[stateData[0].subject];
 
       stateData.forEach(function (cutscoreSet, i) {
@@ -18432,9 +18436,9 @@ var cutscores = function (selector, args) {
           { level: _.find(allCuts, {test: d.test, year: d.year}).level }
         );
       })
-      var ref$2 = createCutScales(allCuts, width, height);
-      var x = ref$2.x;
-      var y = ref$2.y;
+      var ref$1 = createCutScales(allCuts, width, height);
+      var x = ref$1.x;
+      var y = ref$1.y;
 
       var layer = container
         .append('div')

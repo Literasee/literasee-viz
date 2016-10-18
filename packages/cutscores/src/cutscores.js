@@ -36,8 +36,6 @@ export default function (selector = 'body', args) {
 
   loadData(params)
     .then(({stateData, studentData}) => {
-
-      // if just rendering cuts draw the background and bail
       if (!studentData) {
         const cutscoreSet = stateData.pop(); // grab the most recent cuts
         cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
@@ -47,11 +45,14 @@ export default function (selector = 'body', args) {
         // to ensure the chart is included in the page layout
         createSVG(container, 'relative')
           .call(drawBackground, cutscoreSet, x, y, height);
-        return;
       }
 
-      let allCuts = _.flatten(_.map(stateData, 'cuts'));
+      return {stateData, studentData};
+    })
+    .then(({stateData, studentData}) => {
+      if (!studentData) return;
 
+      let allCuts = _.flatten(_.map(stateData, 'cuts'));
       const subjectData = studentData.data.subjects[stateData[0].subject];
 
       stateData.forEach((cutscoreSet, i) => {
