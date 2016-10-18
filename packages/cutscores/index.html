@@ -3,25 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <title>cutscores-viz</title>
+  <style>
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  </style>
 </head>
 <body style="margin: 0 4em">
 
-  <h2>Standard grade progression</h2>
+  <div class="chart-header">
+    <h2>Standard grade progression</h2>
+    <a href="#" onclick="max('#pym-0')">max</a>
+  </div>
   <div data-pym-src="i.html?student=standard"></div>
 
-  <h2>Grade 5 repeat</h2>
+  <div class="chart-header">
+    <h2>Grade 5 repeat</h2>
+    <a href="#" onclick="max('#pym-1')">max</a>
+  </div>
   <div data-pym-src="i.html?student=repeat"></div>
 
-  <h2>Grade 8 skipped</h2>
+  <div class="chart-header">
+    <h2>Grade 8 skipped</h2>
+    <a href="#" onclick="max('#pym-2')">max</a>
+  </div>
   <div data-pym-src="i.html?student=skipped"></div>
 
-  <h2>Grade 7 split</h2>
+  <div class="chart-header">
+    <h2>Grade 7 split</h2>
+    <a href="#" onclick="max('#pym-3')">max</a>
+  </div>
   <div data-pym-src="i.html?student=split"></div>
 
-  <h2>State data only</h2>
+  <div class="chart-header">
+    <h2>State data only</h2>
+    <a href="#" onclick="max('#pym-4')">max</a>
+  </div>
   <div data-pym-src="i.html"></div>
 
   <script src="//pym.nprapps.org/pym.v1.min.js"></script>
+  <script>
+    function max (id) {
+      var d = document.querySelector(id);
+      d.style.setProperty('position', 'fixed');
+      d.style.setProperty('top', 0);
+      d.style.setProperty('right', 0);
+      d.style.setProperty('bottom', 0);
+      d.style.setProperty('left', 0);
+      d.style.setProperty('display', 'flex');
+      d.style.setProperty('flex-direction', 'column');
+      d.style.setProperty('justify-content', 'center');
+
+      var bg = document.createElement('div');
+      bg.style.setProperty('position', 'absolute');
+      bg.style.setProperty('background', 'white');
+      bg.style.setProperty('opacity', 0.96);
+      bg.style.setProperty('width', '100%');
+      bg.style.setProperty('height', '100%');
+      bg.onclick = min.bind(null, id);
+
+      var i = d.querySelector('iframe');
+      i.style.setProperty('position', 'relative');
+
+      d.insertBefore(bg, i);
+    }
+
+    function min (id) {
+      var d = document.querySelector(id);
+      d.style.removeProperty('position');
+      d.style.removeProperty('top');
+      d.style.removeProperty('right');
+      d.style.removeProperty('bottom');
+      d.style.removeProperty('left');
+
+      d.removeChild(d.querySelector('div'));
+    }
+  </script>
 
 </body>
 </html>
