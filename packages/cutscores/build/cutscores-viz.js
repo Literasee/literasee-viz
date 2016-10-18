@@ -18373,80 +18373,85 @@ var cutscores = function (selector, args) {
       var studentData = ref.studentData;
 
 
+      // if just rendering cuts draw the background and bail
+      if (!studentData) {
+        var cutscoreSet = stateData.pop(); // grab the most recent cuts
+        cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
+        var ref$1 = createCutScales(cutscoreSet.cuts, width, height);
+        var x$1 = ref$1.x;
+        var y$1 = ref$1.y;
+        // if the cuts are the only thing we're rendering
+        // their svg tag needs to be relatively positioned
+        // to ensure the chart is included in the page layout
+        createSVG(container, 'relative')
+          .call(drawBackground, cutscoreSet, x$1, y$1, height);
+        return;
+      }
+
       var allCuts = _.flatten(_.map(stateData, 'cuts'));
 
-      if (studentData) {
-        var subjectData = studentData.data.subjects[stateData[0].subject];
+      var subjectData = studentData.data.subjects[stateData[0].subject];
 
-        stateData.forEach(function (cutscoreSet, i) {
-          // get the ratio before modifying the cuts
-          var ratio = cutscoreSet.cuts.length / allCuts.length;
+      stateData.forEach(function (cutscoreSet, i) {
+        // get the ratio before modifying the cuts
+        var ratio = cutscoreSet.cuts.length / allCuts.length;
 
-          // merging with student data has to be first because
-          // it can remove (skipped) or duplicate (repeated) tests
-          cutscoreSet.cuts = mergeCutsAndScores(cutscoreSet.cuts, subjectData);
-          // create level props and dummy tests at beginning and end of list
-          cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
-          // create scales using fully transformed list of cuts/tests
-          var ref = createCutScales(cutscoreSet.cuts, width, height);
-          var x = ref.x;
-          var y = ref.y;
-
-          if (ratio < 1) {
-            x.range([0, w * ratio - margin.left - margin.right]);
-
-            var splitWrapper = container
-              .append('div')
-              .attr('id', Date.now())
-              .style('width', ratio * 100 + '%')
-              .style('display', 'inline-block')
-              .style('position', 'absolute')
-              .style(i ? 'right' : 'left', 0);
-
-            createSVG(splitWrapper, 'absolute', ratio)
-              .call(drawBackground, cutscoreSet, x, y, height);
-          } else {
-            createSVG(container).call(drawBackground, cutscoreSet, x, y, height);
-          }
-        });
-
-        allCuts = mergeCutsAndScores(allCuts, subjectData);
-        allCuts = addGutterCuts(allCuts);
-        var scores = subjectData.map(function (d) {
-          return _.merge(
-            d,
-            { level: _.find(allCuts, {test: d.test, year: d.year}).level }
-          );
-        })
-        var ref$1 = createCutScales(allCuts, width, height);
-        var x = ref$1.x;
-        var y = ref$1.y;
-
-        var layer = container
-          .append('div')
-            .attr('id', Date.now())
-            .style('position', 'relative')
-            .style('pointer-events', 'none');
-
-        // create a new, absolutely positioned SVG to house the growth lines
-        createSVG(layer).call(drawGrowthLines, scores, x, y);
-        // create a new, absolutely positioned SVG to house the trajectory lines
-        var trajectories = createSVG(layer).call(drawTrajectories, scores, x, y);
-        // create a new, absolutely positioned SVG to house the score bubbles
-        createSVG(layer)
-          .call(drawScores, scores, x, y)
-          .on('scoreSelected trajectoryChanged', function () {
-            trajectories[d3.event.type](d3.event.detail);
-          })
-
-      } else {
-        var cutscoreSet = stateData.pop();
+        // merging with student data has to be first because
+        // it can remove (skipped) or duplicate (repeated) tests
+        cutscoreSet.cuts = mergeCutsAndScores(cutscoreSet.cuts, subjectData);
+        // create level props and dummy tests at beginning and end of list
         cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
-        var ref$2 = createCutScales(cutscoreSet.cuts, width, height);
-        var x$1 = ref$2.x;
-        var y$1 = ref$2.y;
-        createSVG(container, 'relative').call(drawBackground, cutscoreSet, x$1, y$1, height);
-      }
+        // create scales using fully transformed list of cuts/tests
+        var ref = createCutScales(cutscoreSet.cuts, width, height);
+        var x = ref.x;
+        var y = ref.y;
+
+        if (ratio < 1) {
+          x.range([0, w * ratio - margin.left - margin.right]);
+
+          var splitWrapper = container
+            .append('div')
+            .attr('id', Date.now())
+            .style('width', ratio * 100 + '%')
+            .style('display', 'inline-block')
+            .style('position', 'absolute')
+            .style(i ? 'right' : 'left', 0);
+
+          createSVG(splitWrapper, 'absolute', ratio)
+            .call(drawBackground, cutscoreSet, x, y, height);
+        } else {
+          createSVG(container).call(drawBackground, cutscoreSet, x, y, height);
+        }
+      });
+
+      allCuts = mergeCutsAndScores(allCuts, subjectData);
+      allCuts = addGutterCuts(allCuts);
+      var scores = subjectData.map(function (d) {
+        return _.merge(
+          d,
+          { level: _.find(allCuts, {test: d.test, year: d.year}).level }
+        );
+      })
+      var ref$2 = createCutScales(allCuts, width, height);
+      var x = ref$2.x;
+      var y = ref$2.y;
+
+      var layer = container
+        .append('div')
+          .attr('id', Date.now())
+          .style('position', 'relative')
+          .style('pointer-events', 'none');
+
+      // create a new, absolutely positioned SVG to house the growth lines
+      createSVG(layer).call(drawGrowthLines, scores, x, y);
+      // create a new, absolutely positioned SVG to house the trajectory lines
+      var trajectories = createSVG(layer).call(drawTrajectories, scores, x, y);
+      // create a new, absolutely positioned SVG to house the score bubbles
+      createSVG(layer)
+        .call(drawScores, scores, x, y)
+        .on('scoreSelected trajectoryChanged', function () {
+          trajectories[d3.event.type](d3.event.detail);
+        })
 
     })
     .then(function () {
