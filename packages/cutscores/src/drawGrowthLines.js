@@ -1,4 +1,6 @@
-export default function (svg, scores, x, y, colors) {
+import colorScale from './colorScale';
+
+export default function (svg, scores, x, y) {
   var line = d3.line()
     .x(d => x(d.level))
     .y(d => y(d.score))
@@ -15,7 +17,7 @@ export default function (svg, scores, x, y, colors) {
           return line(scores.slice(i, i + 2));
         }
       })
-      .style('stroke', d => colors(+d.sgp / 100))
+      .style('stroke', d => colorScale(+d.sgp / 100))
       .style('stroke-width', 3)
       .style('fill', 'none');
 }

@@ -1,3 +1,5 @@
+import colorScale from './colorScale';
+
 function animateDashes (sel) {
   sel
     .attr('stroke-dashoffset', window.dashes.dashoffset)
@@ -11,7 +13,7 @@ function animateDashes (sel) {
       })
 }
 
-export default function (svg, scores, x, y, colors) {
+export default function (svg, scores, x, y) {
   const line = d3.line()
     .x(d => x(d.level))
     .y(d => y(d.score))
@@ -41,7 +43,7 @@ export default function (svg, scores, x, y, colors) {
         .attr('class', 'trajectory trajectory' + score.level)
         .attr('d', d => line(d))
         .style('stroke', d => {
-          return colors(+d[0].percentile / 100);
+          return colorScale(+d[0].percentile / 100);
         })
         .style('stroke-width', 2)
         .style('stroke-opacity', 0)

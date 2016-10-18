@@ -7,7 +7,6 @@ var index$2 = function (str) {
 	});
 };
 
-/* eslint-disable no-unused-vars */
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -153,16 +152,6 @@ function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
 
-/**
- * lodash (Custom Build) <https://lodash.com/>
- * Build: `lodash modularize exports="npm" -o ./`
- * Copyright jQuery Foundation and other contributors <https://jquery.org/>
- * Released under MIT license <https://lodash.com/license>
- * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
- * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- */
-
-/** Used as references for various `Number` constants. */
 var INFINITY = 1 / 0;
 
 /** `Object#toString` result references. */
@@ -785,7 +774,6 @@ function responsivefy(svg) {
   }
 }
 
-// convert kebab-case names from URL or HTML attrs to camelCase
 function camelizeKeys (o) {
   var out = {};
   Object.keys(o).forEach(function (key) { return out[index$6(key)] = o[key]; });
@@ -18155,7 +18143,9 @@ var drawBackground = function (svg, data, x, y, height) {
   // bands.attr('d', area);
 }
 
-var drawGrowthLines = function (svg, scores, x, y, colors) {
+var colorScale = d3.interpolateRgb('red', 'blue');
+
+var drawGrowthLines = function (svg, scores, x, y) {
   var line = d3.line()
     .x(function (d) { return x(d.level); })
     .y(function (d) { return y(d.score); })
@@ -18172,7 +18162,7 @@ var drawGrowthLines = function (svg, scores, x, y, colors) {
           return line(scores.slice(i, i + 2));
         }
       })
-      .style('stroke', function (d) { return colors(+d.sgp / 100); })
+      .style('stroke', function (d) { return colorScale(+d.sgp / 100); })
       .style('stroke-width', 3)
       .style('fill', 'none');
 }
@@ -18190,7 +18180,7 @@ function animateDashes (sel) {
       })
 }
 
-var drawTrajectories = function (svg, scores, x, y, colors) {
+var drawTrajectories = function (svg, scores, x, y) {
   var line = d3.line()
     .x(function (d) { return x(d.level); })
     .y(function (d) { return y(d.score); })
@@ -18220,7 +18210,7 @@ var drawTrajectories = function (svg, scores, x, y, colors) {
         .attr('class', 'trajectory trajectory' + score.level)
         .attr('d', function (d) { return line(d); })
         .style('stroke', function (d) {
-          return colors(+d[0].percentile / 100);
+          return colorScale(+d[0].percentile / 100);
         })
         .style('stroke-width', 2)
         .style('stroke-opacity', 0)
@@ -18353,9 +18343,6 @@ var drawScores = function (svg, scores, x, y) {
       });
 }
 
-var interp = d3.interpolateRgb('red', 'blue');
-if (window['pym']) { var pymChild = new pym.Child(); }
-
 window.dashes = {
   color: 'white',
   width: 2,
@@ -18442,9 +18429,9 @@ var cutscores = function (selector, args) {
             .style('pointer-events', 'none');
 
         // create a new, absolutely positioned SVG to house the growth lines
-        createSVG(layer).call(drawGrowthLines, scores, x, y, interp);
+        createSVG(layer).call(drawGrowthLines, scores, x, y);
         // create a new, absolutely positioned SVG to house the trajectory lines
-        var trajectories = createSVG(layer).call(drawTrajectories, scores, x, y, interp);
+        var trajectories = createSVG(layer).call(drawTrajectories, scores, x, y);
         // create a new, absolutely positioned SVG to house the score bubbles
         createSVG(layer)
           .call(drawScores, scores, x, y)
@@ -18461,8 +18448,9 @@ var cutscores = function (selector, args) {
         createSVG(container, 'relative').call(drawBackground, cutscoreSet, x$1, y$1, height);
       }
 
-      if (pymChild) { pymChild.sendHeight(); }
-
+    })
+    .then(function () {
+      if (window['pym']) { new pym.Child().sendHeight(); }
     });
 }
 

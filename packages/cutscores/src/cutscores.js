@@ -2,7 +2,6 @@ import { default as getDataParameters } from './getDataParameters';
 import { default as loadData } from './loadData';
 
 import mergeCutsAndScores from './mergeCutsAndScores';
-var interp = d3.interpolateRgb('red', 'blue');
 
 window.dashes = {
   color: 'white',
@@ -90,9 +89,9 @@ export default function (selector = 'body', args) {
             .style('pointer-events', 'none');
 
         // create a new, absolutely positioned SVG to house the growth lines
-        createSVG(layer).call(drawGrowthLines, scores, x, y, interp);
+        createSVG(layer).call(drawGrowthLines, scores, x, y);
         // create a new, absolutely positioned SVG to house the trajectory lines
-        const trajectories = createSVG(layer).call(drawTrajectories, scores, x, y, interp);
+        const trajectories = createSVG(layer).call(drawTrajectories, scores, x, y);
         // create a new, absolutely positioned SVG to house the score bubbles
         createSVG(layer)
           .call(drawScores, scores, x, y)
