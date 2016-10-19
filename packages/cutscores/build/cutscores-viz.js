@@ -18115,7 +18115,7 @@ var drawBackground = function (svg, data, x, y, height) {
   bands
     .append('path')
     .style('fill', '#333')
-    .style('fill-opacity', function (d, i) { return 0.6 - i * 0.1; })
+    .style('fill-opacity', function (d, i) { return 0.25 - i * 0.05; })
     .style('stroke', 'white')
     .style('stroke-width', 1)
     .attr('d', area);
