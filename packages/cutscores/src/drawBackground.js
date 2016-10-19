@@ -1,6 +1,4 @@
 export default function (svg, data, x, y, height) {
-  var colors = ['#525252', '#737373', '#969696', '#BDBDBD', '#D9D9D9'];
-
   var cut_scores = data.cuts;
   var numLevels = data.levels.length;
 
@@ -20,7 +18,9 @@ export default function (svg, data, x, y, height) {
   svg
     .append('g')
     .attr('transform', `translate(0, ${height})`)
-    .call(xAxis);
+    .call(xAxis)
+    .selectAll('.domain')
+    .style('stroke', 'white');
 
   // Y axes, for debugging only
   // svg.append('g').call(d3.axisLeft(y));
@@ -68,8 +68,7 @@ export default function (svg, data, x, y, height) {
       .on('mouseover', function () {
         d3.select(this)
           .select('path')
-          .style('fill-opacity', 0.5)
-          .style('stroke-width', 0.8);
+          .style('stroke-width', 3);
 
         d3.select(this)
           .select('text')
@@ -78,8 +77,7 @@ export default function (svg, data, x, y, height) {
       .on('mouseout', function () {
         d3.select(this)
           .select('path')
-          .style('fill-opacity', 0.5)
-          .style('stroke-width', .1);
+          .style('stroke-width', 1);
 
         d3.select(this)
           .select('text')
@@ -92,12 +90,10 @@ export default function (svg, data, x, y, height) {
   // chart is (currently) only rendered once, so everything happens in enter
   bands
     .append('path')
-    .style('fill', (d) => {
-      return d3.scaleOrdinal(colors).domain(keys)(d.key);
-    })
-    .style('fill-opacity', 0.5)
-    .style('stroke', 'black')
-    .style('stroke-width', .1)
+    .style('fill', '#333')
+    .style('fill-opacity', (d, i) => 0.6 - i * 0.1)
+    .style('stroke', 'white')
+    .style('stroke-width', 1)
     .attr('d', area);
 
   bands
