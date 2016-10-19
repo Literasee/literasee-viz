@@ -3,49 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title>cutscores-viz</title>
-  <style>
-    .chart-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-  </style>
 </head>
 <body style="margin: 0 4em">
 
-  <div class="chart-header">
-    <h2>Standard grade progression</h2>
-    <a href="#" onclick="max('#pym-0')">max</a>
-  </div>
+  <h2>Standard grade progression</h2>
   <div data-pym-src="i.html?student=standard"></div>
 
-  <div class="chart-header">
-    <h2>Grade 5 repeat</h2>
-    <a href="#" onclick="max('#pym-1')">max</a>
-  </div>
+  <h2>Grade 5 repeat</h2>
   <div data-pym-src="i.html?student=repeat"></div>
 
-  <div class="chart-header">
-    <h2>Grade 8 skipped</h2>
-    <a href="#" onclick="max('#pym-2')">max</a>
-  </div>
+  <h2>Grade 8 skipped</h2>
   <div data-pym-src="i.html?student=skipped"></div>
 
-  <div class="chart-header">
-    <h2>Grade 7 split</h2>
-    <a href="#" onclick="max('#pym-3')">max</a>
-  </div>
+  <h2>Grade 7 split</h2>
   <div data-pym-src="i.html?student=split"></div>
 
-  <div class="chart-header">
-    <h2>State data only</h2>
-    <a href="#" onclick="max('#pym-4')">max</a>
-  </div>
+  <h2>State data only</h2>
   <div data-pym-src="i.html"></div>
 
   <script src="//pym.nprapps.org/pym.v1.min.js"></script>
   <script>
     function max (id) {
+      if (id.substr(0, 1) !== '#') id = '#' + id;
+
       var d = document.querySelector(id);
       d.style.setProperty('position', 'fixed');
       d.style.setProperty('top', 0);
@@ -67,10 +47,17 @@
       var i = d.querySelector('iframe');
       i.style.setProperty('position', 'relative');
 
+      i.contentWindow.document.onkeyup = function (e) {
+        if (e.keyCode === 27) min(id);
+      }
+      i.contentWindow.document.querySelector('#maxBtn').innerText = 'minimize';
+
       d.insertBefore(bg, i);
     }
 
     function min (id) {
+      if (id.substr(0, 1) !== '#') id = '#' + id;
+
       var d = document.querySelector(id);
       d.style.removeProperty('position');
       d.style.removeProperty('top');
@@ -82,7 +69,34 @@
 
       var i = d.querySelector('iframe');
       i.style.removeProperty('position');
+      i.contentWindow.document.onkeyup = null;
+      i.contentWindow.document.querySelector('#maxBtn').innerText = 'maximize';
     }
+
+    function createMaximizeButtons () {
+      document.querySelectorAll('iframe').forEach(i => {
+        var str = i.contentWindow.document.location.search;
+        if (str.substr(0, 1) === '?') str = str.substr(1);
+        var id = str.split('&').reduce((prev, pair) => {
+          if (prev) return prev;
+          if (pair.split('=')[0] === 'childId') return pair.split('=')[1];
+        }, null);
+
+        var b = document.createElement('button');
+        b.setAttribute('id', 'maxBtn');
+        b.innerText = 'maximize';
+        b.onclick = function (e) {
+          if (e.target.innerText === 'maximize') {
+            max(id);
+          } else {
+            min(id);
+          }
+        }
+        i.contentWindow.document.body.appendChild(b);
+      })
+    }
+
+    setTimeout(createMaximizeButtons, 5000);
   </script>
 
 </body>
