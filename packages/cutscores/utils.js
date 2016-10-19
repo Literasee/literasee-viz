@@ -1,3 +1,4 @@
+document.domain = 'literasee.io';
 setTimeout(createMaximizeButtons, 5000);
 
 function parseQueryString (str) {
