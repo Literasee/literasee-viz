@@ -1,6 +1,9 @@
 export default function (svg, data, x, y, height) {
   var cut_scores = data.cuts;
   var numLevels = data.levels.length;
+  const opacityScale = d3.scaleLinear()
+    .domain([0, numLevels - 1])
+    .range([0.25, 0.05]);
 
   // create an X axis using the original length of cut_scores as number of ticks
   var xAxis = d3.axisBottom(x)
@@ -91,7 +94,7 @@ export default function (svg, data, x, y, height) {
   bands
     .append('path')
     .style('fill', '#333')
-    .style('fill-opacity', (d, i) => 0.25 - i * 0.05)
+    .style('fill-opacity', (d, i) => opacityScale(i))
     .style('stroke', 'white')
     .style('stroke-width', 1)
     .attr('d', area);
