@@ -1,6 +1,25 @@
 document.domain = 'literasee.io';
 setTimeout(createMaximizeButtons, 5000);
 
+function createMaximizeButtons () {
+  document.querySelectorAll('iframe').forEach(i => {
+    var doc = i.contentWindow.document;
+    var id = parseQueryString(doc.location.search).childId;
+
+    var b = document.createElement('button');
+    b.setAttribute('id', 'maxBtn');
+    b.innerText = 'maximize';
+    b.onclick = function (e) {
+      if (e.target.innerText === 'maximize') {
+        max(id);
+      } else {
+        min(id);
+      }
+    }
+    doc.body.appendChild(b);
+  })
+}
+
 function parseQueryString (str) {
   str = str || window.location.search;
   if (str.substr(0, 1) === '?') str = str.substr(1);
@@ -63,23 +82,4 @@ function min (id) {
   i.style.removeProperty('position');
   i.contentWindow.document.onkeyup = null;
   i.contentWindow.document.querySelector('#maxBtn').innerText = 'maximize';
-}
-
-function createMaximizeButtons () {
-  document.querySelectorAll('iframe').forEach(i => {
-    var doc = i.contentWindow.document;
-    var id = parseQueryString(doc.location.search).childId;
-
-    var b = document.createElement('button');
-    b.setAttribute('id', 'maxBtn');
-    b.innerText = 'maximize';
-    b.onclick = function (e) {
-      if (e.target.innerText === 'maximize') {
-        max(id);
-      } else {
-        min(id);
-      }
-    }
-    doc.body.appendChild(b);
-  })
 }
