@@ -24,9 +24,7 @@ function filterBySubjectAndYearBounds (subject, minYear, maxYear, stateData) {
 }
 
 export default function ({state, student, subject, minYear, maxYear}) {
-  const base = window.location.hostname === 'localhost'
-    ? 'http://localhost:4000'
-    : 'https://literasee.github.io/cutscores';
+  const base = 'https://data.literasee.io';
 
   const filter = filterBySubjectAndYearBounds.bind(
     null,
@@ -39,7 +37,7 @@ export default function ({state, student, subject, minYear, maxYear}) {
   // just load the state data and
   // get the most recent cutscore set for the specified subject
   if (!student) {
-    return fetchJSON(`${base}/sgp/${state}.json`)
+    return fetchJSON(`${base}/cutscores/sgp/${state}.json`)
       .then(data => {
         return {
           stateData: filter(data).slice(-1)
@@ -55,7 +53,7 @@ export default function ({state, student, subject, minYear, maxYear}) {
     .then(data => {
       studentData = data;
 
-      return fetchJSON(`${base}/sgp/${data.metadata.split || data.data.state}.json`);
+      return fetchJSON(`${base}/cutscores/sgp/${data.metadata.split || data.data.state}.json`);
     })
     .then(data => {
       const stateData = filter(data);

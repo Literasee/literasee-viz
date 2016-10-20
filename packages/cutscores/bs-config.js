@@ -6,5 +6,12 @@ module.exports = {
   ],
   ui: false,
   notify: false,
-  ghostMode: false
+  ghostMode: false,
+  open: false,
+  rewriteRules: [
+    {
+      match: 'https://data.literasee.io',
+      replace: 'http://localhost:4000'
+    }
+  ]
 };

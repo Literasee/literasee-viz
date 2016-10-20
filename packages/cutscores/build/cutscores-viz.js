@@ -869,9 +869,7 @@ var loadData = function (ref) {
   var minYear = ref.minYear;
   var maxYear = ref.maxYear;
 
-  var base = window.location.hostname === 'localhost'
-    ? 'http://localhost:4000'
-    : 'https://literasee.github.io/cutscores';
+  var base = 'https://data.literasee.io';
 
   var filter = filterBySubjectAndYearBounds.bind(
     null,
@@ -884,7 +882,7 @@ var loadData = function (ref) {
   // just load the state data and
   // get the most recent cutscore set for the specified subject
   if (!student) {
-    return fetchJSON((base + "/sgp/" + state + ".json"))
+    return fetchJSON((base + "/cutscores/sgp/" + state + ".json"))
       .then(function (data) {
         return {
           stateData: filter(data).slice(-1)
@@ -900,7 +898,7 @@ var loadData = function (ref) {
     .then(function (data) {
       studentData = data;
 
-      return fetchJSON((base + "/sgp/" + (data.metadata.split || data.data.state) + ".json"));
+      return fetchJSON((base + "/cutscores/sgp/" + (data.metadata.split || data.data.state) + ".json"));
     })
     .then(function (data) {
       var stateData = filter(data);
