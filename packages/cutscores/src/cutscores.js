@@ -114,6 +114,9 @@ export default function (selector = 'body', args) {
 
     })
     .then(() => {
-      if (window['pym']) new pym.Child().sendHeight();
+      if (window['pym']) {
+        window.pymChild = new pym.Child();
+        window.pymChild.sendHeight();
+      }
     });
 }
