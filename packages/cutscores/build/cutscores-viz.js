@@ -7,7 +7,6 @@ var index$2 = function (str) {
 	});
 };
 
-/* eslint-disable no-unused-vars */
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -153,16 +152,6 @@ function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
 
-/**
- * lodash (Custom Build) <https://lodash.com/>
- * Build: `lodash modularize exports="npm" -o ./`
- * Copyright jQuery Foundation and other contributors <https://jquery.org/>
- * Released under MIT license <https://lodash.com/license>
- * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
- * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- */
-
-/** Used as references for various `Number` constants. */
 var INFINITY = 1 / 0;
 
 /** `Object#toString` result references. */
@@ -785,7 +774,6 @@ function responsivefy(svg) {
   }
 }
 
-// convert kebab-case names from URL or HTML attrs to camelCase
 function camelizeKeys (o) {
   var out = {};
   Object.keys(o).forEach(function (key) { return out[index$6(key)] = o[key]; });
@@ -18173,7 +18161,15 @@ var drawGrowthLines = function (svg, scores, x, y) {
       })
       .style('stroke', function (d) { return colorScale(+d.sgp / 100); })
       .style('stroke-width', 3)
-      .style('fill', 'none');
+      .style('stroke-opacity', 0.5)
+      .style('pointer-events', 'auto')
+      .style('fill', 'none')
+      .on('mouseover', function () {
+        d3.select(this).style('stroke-opacity', 0.9);
+      })
+      .on('mouseout', function () {
+        d3.select(this).style('stroke-opacity', 0.5);
+      });
 }
 
 function animateDashes (sel) {

@@ -19,5 +19,13 @@ export default function (svg, scores, x, y) {
       })
       .style('stroke', d => colorScale(+d.sgp / 100))
       .style('stroke-width', 3)
-      .style('fill', 'none');
+      .style('stroke-opacity', 0.5)
+      .style('pointer-events', 'auto')
+      .style('fill', 'none')
+      .on('mouseover', function () {
+        d3.select(this).style('stroke-opacity', 0.9);
+      })
+      .on('mouseout', function () {
+        d3.select(this).style('stroke-opacity', 0.5);
+      });
 }
