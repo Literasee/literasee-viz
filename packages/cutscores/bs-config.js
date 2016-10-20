@@ -7,7 +7,9 @@ module.exports = {
   ui: false,
   notify: false,
   ghostMode: false,
-  open: false,
+  open: 'external',
+  host: 'local.literasee.io',
+  port: 3000,
   rewriteRules: [
     {
       match: 'https://data.literasee.io',
