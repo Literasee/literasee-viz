@@ -17,15 +17,12 @@
     "build": "rollup -c -o build/$npm_package_name.js",
     "watch": "npm run build -- -w",
     "minify": "uglifyjs build/$npm_package_name.js -c -m -o build/$npm_package_name.min.js",
-    "bs": "browser-sync start -c bs-config.js",
-    "start": "npm run build && run-p watch bs",
+    "start": "npm run watch",
     "prepublish": "npm run clean && npm run build && npm run minify",
     "postpublish": "zip -j build/$npm_package_name.zip -- LICENSE README.md build/*"
   },
   "devDependencies": {
     "ava": "0.16.0",
-    "browser-sync": "2.17.5",
-    "npm-run-all": "3.1.0",
     "reify": "0.3.8",
     "rollup": "0.36.0",
     "rollup-plugin-buble": "0.14.0",
@@ -37,7 +34,6 @@
   "dependencies": {
     "lodash": "4.16.2",
     "lodash.camelcase": "4.3.0",
-    "query-string": "4.2.3",
-    "whatwg-fetch": "1.0.0"
+    "query-string": "4.2.3"
   }
 }

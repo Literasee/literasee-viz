@@ -1,0 +1,24 @@
+{
+  "name": "literasee-viz",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "browser-sync start -c bs-config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Literasee/literasee-viz.git"
+  },
+  "keywords": [],
+  "author": "Ben Clinkinbeard <ben.clinkinbeard@gmail.com> (http://benclinkinbeard.com/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Literasee/literasee-viz/issues"
+  },
+  "homepage": "https://github.com/Literasee/literasee-viz#readme",
+  "devDependencies": {
+    "browser-sync": "^2.17.5",
+    "lerna": "2.0.0-beta.30"
+  }
+}
