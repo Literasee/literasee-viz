@@ -1,21 +1,16 @@
 {
-  "name": "cutscores-viz",
+  "name": "cutscores",
   "version": "0.1.0",
   "description": "D3 visualization of state assessment cutscores",
   "keywords": [
     "d3",
     "d3-module"
   ],
-  "homepage": "https://github.com/Literasee/cutscores-viz",
   "license": "Apache-2.0",
   "author": "Ben Clinkinbeard <ben.clinkinbeard@gmail.com> (http://benclinkinbeard.com/)",
-  "main": "build/cutscores-viz.js",
+  "main": "build/cutscores.js",
   "module": "index",
   "jsnext:main": "index",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Literasee/cutscores-viz.git"
-  },
   "scripts": {
     "test": "ava --require reify",
     "clean": "rm -rf build && mkdir build",
