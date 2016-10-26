@@ -11,7 +11,6 @@ module.exports = {
   open: 'external',
   host: 'local.literasee.io',
   port: 3001,
-  startPath: 'demo-host.html',
   rewriteRules: [
     {
       match: 'https://data.literasee.io',
