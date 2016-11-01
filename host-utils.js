@@ -2,7 +2,8 @@ document.domain = 'literasee.io';
 setTimeout(createMaximizeButtons, 5000);
 
 function createMaximizeButtons () {
-  document.querySelectorAll('iframe').forEach(i => {
+  document.querySelectorAll('[data-pym-src]').forEach(d => {
+    var i = d.querySelector('iframe');
     var doc = i.contentWindow.document;
     var id = parseQueryString(doc.location.search).childId;
 
