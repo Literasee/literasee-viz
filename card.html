@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hello</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,500" rel="stylesheet" type="text/css">
+  <style>
+    .bg {
+      position: absolute;
+      width: 100vw;
+      height: 100%;
+      overflow: hidden;
+      background-color: #fff;
+      border-radius: 5px;
+      background-size: contain;
+      background-image: url(https://literasee.io/public/img/thumb.svg);
+      background-repeat: no-repeat;
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      font-weight: 300;
+    }
+    h1 {
+      margin: 1rem;
+      font-weight: 500;
+    }
+    .desc {
+      margin: 1rem;
+    }
+  </style>
+</head>
+<body style="cursor: pointer; margin: 0" onclick="goToRepo()">
+
+  <div class="bg">
+    <h1></h1>
+    <div class="desc"></div>
+  </div>
+
+  <script>
+    function parseQueryString (str) {
+      str = str || window.location.search;
+      if (str.substr(0, 1) === '?') str = str.substr(1);
+
+      if (!str) return {};
+
+      return str.split('&').reduce(function (prev, pair) {
+        prev[pair.split('=')[0]] = pair.split('=')[1];
+        return prev;
+      }, {});
+    }
+
+    var c = parseQueryString();
+    document.querySelector('h1').innerHTML = decodeURI(c.title) || 'Add a title';
+    document.querySelector('.desc').innerHTML = c.desc ? decodeURI(c.desc) : 'Add a description';
+
+    function goToRepo () {
+      window.open('https://github.com/' + c.repo);
+    }
+  </script>
+
+</body>
+</html>
