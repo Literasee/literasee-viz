@@ -7,7 +7,6 @@ var index$2 = function (str) {
 	});
 };
 
-/* eslint-disable no-unused-vars */
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -153,16 +152,6 @@ function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
 
-/**
- * lodash (Custom Build) <https://lodash.com/>
- * Build: `lodash modularize exports="npm" -o ./`
- * Copyright jQuery Foundation and other contributors <https://jquery.org/>
- * Released under MIT license <https://lodash.com/license>
- * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
- * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- */
-
-/** Used as references for various `Number` constants. */
 var INFINITY = 1 / 0;
 
 /** `Object#toString` result references. */
@@ -785,7 +774,6 @@ function responsivefy(svg) {
   }
 }
 
-// convert kebab-case names from URL or HTML attrs to camelCase
 function camelizeKeys (o) {
   var out = {};
   Object.keys(o).forEach(function (key) { return out[index$6(key)] = o[key]; });
@@ -826,7 +814,8 @@ var getDataParameters = function (selector, args) {
     minYear: 1900,
     maxYear: 2100,
     subject: null, // default subject is whatever is listed first in the data
-    student: null // student is optional
+    student: null, // student is optional
+    showGrowth: false
   });
 
   // options clean up
@@ -18032,37 +18021,38 @@ var createCutScales = function (cuts, width, height) {
   };
 }
 
-var drawBackground = function (svg, data, x, y, height) {
-  var cut_scores = data.cuts;
+var drawBackground = function (svg, data, x, y, height, ugh) {
+  var cut_scores = ugh ? data.cuts_growth : data.cuts;
   var numLevels = data.levels.length;
   var opacityScale = d3.scaleLinear()
     .domain([0, numLevels - 1])
     .range([0.25, 0.05]);
 
-  // create an X axis using the original length of cut_scores as number of ticks
-  var xAxis = d3.axisBottom(x)
-    .ticks(cut_scores.length - 2)
-    .tickFormat(function (d, i) {
-      // use the test field for tick labels
-      // +1 skips the fake data point we created at the front of the array
-      var realCut = cut_scores[i+1];
-      if (realCut.year) { return ((realCut.test) + " / " + (realCut.year)); }
-      return ("" + (realCut.test));
-    })
-    .tickSizeOuter(0);
+  if (!ugh) {
+    // create an X axis using the original length of cut_scores as number of ticks
+    var xAxis = d3.axisBottom(x)
+      .ticks(cut_scores.length - 2)
+      .tickFormat(function (d, i) {
+        // use the test field for tick labels
+        // +1 skips the fake data point we created at the front of the array
+        var realCut = cut_scores[i+1];
+        if (realCut.year) { return ((realCut.test) + " / " + (realCut.year)); }
+        return ("" + (realCut.test));
+      })
+      .tickSizeOuter(0);
 
-  // draw X axis below chart
-  svg
-    .append('g')
-    .attr('transform', ("translate(0, " + height + ")"))
-    .call(xAxis)
-    .selectAll('.domain')
-    .style('stroke', 'white');
+    // draw X axis below chart
+    svg
+      .append('g')
+      .attr('transform', ("translate(0, " + height + ")"))
+      .call(xAxis)
+      .selectAll('.domain')
+      .style('stroke', 'white');
 
-  // Y axes, for debugging only
-  // svg.append('g').call(d3.axisLeft(y));
-  // svg.append('g').attr('transform', `translate(${width}, 0)`).call(d3.axisRight(y));
-
+    // Y axes, for debugging only
+    // svg.append('g').call(d3.axisLeft(y));
+    // svg.append('g').attr('transform', `translate(${width}, 0)`).call(d3.axisRight(y));
+  }
 
   // generate keys from data
   var keys = ['hoss'];
@@ -18127,7 +18117,7 @@ var drawBackground = function (svg, data, x, y, height) {
   // chart is (currently) only rendered once, so everything happens in enter
   bands
     .append('path')
-    .style('fill', '#333')
+    .style('fill', ugh ? 'red' : '#333')
     .style('fill-opacity', function (d, i) { return opacityScale(i); })
     .style('stroke', 'white')
     .style('stroke-width', 1)
@@ -18420,8 +18410,10 @@ var cutscores = function (selector, args) {
         // merging with student data has to be first because
         // it can remove (skipped) or duplicate (repeated) tests
         cutscoreSet.cuts = mergeCutsAndScores(cutscoreSet.cuts, subjectData);
+        cutscoreSet.cuts_growth = mergeCutsAndScores(cutscoreSet.cuts_growth, subjectData);
         // create level props and dummy tests at beginning and end of list
         cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
+        cutscoreSet.cuts_growth = addGutterCuts(cutscoreSet.cuts_growth);
         // create scales using fully transformed list of cuts/tests
         var ref = createCutScales(cutscoreSet.cuts, width, height);
         var x = ref.x;
@@ -18442,6 +18434,23 @@ var cutscores = function (selector, args) {
             .call(drawBackground, cutscoreSet, x, y, height);
         } else {
           createSVG(container).call(drawBackground, cutscoreSet, x, y, height);
+          if (params.showGrowth) {
+            d3.select('#uiContainer')
+              .append('button')
+              .text('Hide Growth Cuts')
+              .on('click', function () {
+                var isHidden = d3.select('#growth_cuts').style('display') === 'none';
+
+                d3.select(this)
+                  .text(isHidden ? 'Hide Growth Cuts' : 'Show Growth Cuts');
+
+                d3.select('#growth_cuts')
+                  .style('display', isHidden ? 'block' : 'none');
+              })
+            createSVG(container)
+              .attr('id', 'growth_cuts')
+              .call(drawBackground, cutscoreSet, x, y, height, true);
+          }
         }
       });
 
