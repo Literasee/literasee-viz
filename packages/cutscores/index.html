@@ -7,16 +7,18 @@
     document.domain = 'literasee.io';
   </script>
   <style>
-    #maxBtn {
+    #uiContainer {
       opacity: 0.1;
       position: absolute;
       top:0;
       right: 0;
       z-index: 1000;
-      outline: none;
     }
-    #maxBtn:hover {
+    #uiContainer:hover {
       opacity: 1;
+    }
+    #uiContainer * {
+      outline: none;
     }
   </style>
 </head>
@@ -31,6 +33,8 @@
   <script>
     d3.cutscores();
   </script>
+
+  <div id="uiContainer"></div>
 
 </body>
 </html>

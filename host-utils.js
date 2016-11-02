@@ -17,7 +17,7 @@ function createMaximizeButtons () {
         min(id);
       }
     }
-    doc.body.appendChild(b);
+    doc.querySelector('#uiContainer').appendChild(b);
   })
 }
 
