@@ -30,6 +30,23 @@ const {
   createSVG
 } = chartInit(w, h, margin);
 
+function addGrowthCutsToggle () {
+  d3.select('#uiContainer')
+    .append('button')
+    .text('Hide Growth Cuts')
+    .on('click', function () {
+      var isHidden = d3
+        .select('.growth_cuts')
+        .style('display') === 'none';
+
+      d3.select(this)
+        .text(isHidden ? 'Hide Growth Cuts' : 'Show Growth Cuts');
+
+      d3.selectAll('.growth_cuts')
+        .style('display', isHidden ? 'block' : 'none');
+    });
+}
+
 export default function (selector = 'body', args) {
   const container = d3.select(selector).style('position', 'relative');
   const params = getDataParameters(selector, args);
@@ -39,12 +56,18 @@ export default function (selector = 'body', args) {
       if (!studentData) {
         const cutscoreSet = stateData.pop(); // grab the most recent cuts
         cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
+        cutscoreSet.cuts_growth = addGutterCuts(cutscoreSet.cuts_growth);
         const { x, y } = createCutScales(cutscoreSet.cuts, width, height);
+        const position = params.showGrowth ? 'absolute' : 'relative';
         // if the cuts are the only thing we're rendering
         // their svg tag needs to be relatively positioned
         // to ensure the chart is included in the page layout
-        createSVG(container, 'relative')
+        createSVG(container, position)
           .call(drawBackground, cutscoreSet, x, y, height);
+        if (params.showGrowth) {
+          createSVG(container)
+            .call(drawBackground, cutscoreSet, x, y, height, true);
+        }
       }
 
       return {stateData, studentData};
@@ -62,8 +85,10 @@ export default function (selector = 'body', args) {
         // merging with student data has to be first because
         // it can remove (skipped) or duplicate (repeated) tests
         cutscoreSet.cuts = mergeCutsAndScores(cutscoreSet.cuts, subjectData);
+        cutscoreSet.cuts_growth = mergeCutsAndScores(cutscoreSet.cuts_growth, subjectData);
         // create level props and dummy tests at beginning and end of list
         cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
+        cutscoreSet.cuts_growth = addGutterCuts(cutscoreSet.cuts_growth);
         // create scales using fully transformed list of cuts/tests
         const { x, y } = createCutScales(cutscoreSet.cuts, width, height);
 
@@ -76,12 +101,20 @@ export default function (selector = 'body', args) {
             .style('width', ratio * 100 + '%')
             .style('display', 'inline-block')
             .style('position', 'absolute')
-            .style(i ? 'right' : 'left', 0);
+            .style(i % 2 ? 'right' : 'left', 0);
 
           createSVG(splitWrapper, 'absolute', ratio)
             .call(drawBackground, cutscoreSet, x, y, height);
+          if (params.showGrowth) {
+            createSVG(splitWrapper, 'absolute', ratio)
+              .call(drawBackground, cutscoreSet, x, y, height, true);
+          }
         } else {
           createSVG(container).call(drawBackground, cutscoreSet, x, y, height);
+          if (params.showGrowth) {
+            createSVG(container)
+              .call(drawBackground, cutscoreSet, x, y, height, true);
+          }
         }
       });
 
@@ -110,13 +143,16 @@ export default function (selector = 'body', args) {
         .call(drawScores, scores, x, y)
         .on('scoreSelected trajectoryChanged', () => {
           trajectories[d3.event.type](d3.event.detail);
-        })
+        });
 
     })
     .then(() => {
       if (window['pym']) {
         window.pymChild = new pym.Child();
         window.pymChild.sendHeight();
+      }
+      if (params.showGrowth) {
+        addGrowthCutsToggle();
       }
     });
 }

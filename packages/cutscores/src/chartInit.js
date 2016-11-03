@@ -8,6 +8,7 @@ export default function (w, h, margin) {
       return selection
         .append('svg')
           .style('position', position)
+          .style('pointer-events', 'none')
           .attr('width', w * ratio + margin.left + margin.right)
           .attr('height', h + margin.top + margin.bottom)
           .call(responsivefy)

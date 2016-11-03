@@ -17978,6 +17978,7 @@ var chartInit = function (w, h, margin) {
       return selection
         .append('svg')
           .style('position', position)
+          .style('pointer-events', 'none')
           .attr('width', w * ratio + margin.left + margin.right)
           .attr('height', h + margin.top + margin.bottom)
           .call(responsivefy)
@@ -18021,14 +18022,19 @@ var createCutScales = function (cuts, width, height) {
   };
 }
 
-var drawBackground = function (svg, data, x, y, height, ugh) {
-  var cut_scores = ugh ? data.cuts_growth : data.cuts;
-  var numLevels = data.levels.length;
+var drawBackground = function (svg, data, x, y, height, isGrowth) {
+  var cut_scores = isGrowth ? data.cuts_growth : data.cuts;
+  var levels = isGrowth ? data.levels_growth : data.levels;
+  var numLevels = levels.length;
+
   var opacityScale = d3.scaleLinear()
     .domain([0, numLevels - 1])
     .range([0.25, 0.05]);
+  var growthColorScale = d3.scaleQuantize()
+    .domain([0, numLevels - 1])
+    .range(['#d73027', '#f46d43', '#fdae61', '#fee090', '#ffffbf', '#abd9e9']);
 
-  if (!ugh) {
+  if (!isGrowth) {
     // create an X axis using the original length of cut_scores as number of ticks
     var xAxis = d3.axisBottom(x)
       .ticks(cut_scores.length - 2)
@@ -18052,6 +18058,8 @@ var drawBackground = function (svg, data, x, y, height, ugh) {
     // Y axes, for debugging only
     // svg.append('g').call(d3.axisLeft(y));
     // svg.append('g').attr('transform', `translate(${width}, 0)`).call(d3.axisRight(y));
+  } else {
+    svg.attr('class', 'growth_cuts');
   }
 
   // generate keys from data
@@ -18092,6 +18100,7 @@ var drawBackground = function (svg, data, x, y, height, ugh) {
     .enter()
       .append('g')
       .attr('class', 'layer')
+      .style('pointer-events', 'auto')
       .on('mouseover', function () {
         d3.select(this)
           .select('path')
@@ -18117,8 +18126,14 @@ var drawBackground = function (svg, data, x, y, height, ugh) {
   // chart is (currently) only rendered once, so everything happens in enter
   bands
     .append('path')
-    .style('fill', ugh ? 'red' : '#333')
-    .style('fill-opacity', function (d, i) { return opacityScale(i); })
+    .style('fill', function (d, i) {
+      if (!isGrowth) { return '#333'; }
+      return growthColorScale(i);
+    })
+    .style('fill-opacity', function (d, i) {
+      if (!isGrowth) { return opacityScale(i); }
+      return 0.6;
+    })
     .style('stroke', 'white')
     .style('stroke-width', 1)
     .attr('d', area);
@@ -18136,7 +18151,7 @@ var drawBackground = function (svg, data, x, y, height, ugh) {
     })
     .attr('dy', '0.4em')
     .style('fill-opacity', 0)
-    .text(function (d, i) { return data.levels[i].label; });
+    .text(function (d, i) { return levels[i].label; });
 
   // next line only needed if chart will be updated
   // bands.attr('d', area);
@@ -18368,6 +18383,23 @@ var width = ref.width;
 var height = ref.height;
 var createSVG = ref.createSVG;
 
+function addGrowthCutsToggle () {
+  d3.select('#uiContainer')
+    .append('button')
+    .text('Hide Growth Cuts')
+    .on('click', function () {
+      var isHidden = d3
+        .select('.growth_cuts')
+        .style('display') === 'none';
+
+      d3.select(this)
+        .text(isHidden ? 'Hide Growth Cuts' : 'Show Growth Cuts');
+
+      d3.selectAll('.growth_cuts')
+        .style('display', isHidden ? 'block' : 'none');
+    });
+}
+
 var cutscores = function (selector, args) {
   if ( selector === void 0 ) selector = 'body';
 
@@ -18382,14 +18414,20 @@ var cutscores = function (selector, args) {
       if (!studentData) {
         var cutscoreSet = stateData.pop(); // grab the most recent cuts
         cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
+        cutscoreSet.cuts_growth = addGutterCuts(cutscoreSet.cuts_growth);
         var ref$1 = createCutScales(cutscoreSet.cuts, width, height);
         var x = ref$1.x;
         var y = ref$1.y;
+        var position = params.showGrowth ? 'absolute' : 'relative';
         // if the cuts are the only thing we're rendering
         // their svg tag needs to be relatively positioned
         // to ensure the chart is included in the page layout
-        createSVG(container, 'relative')
+        createSVG(container, position)
           .call(drawBackground, cutscoreSet, x, y, height);
+        if (params.showGrowth) {
+          createSVG(container)
+            .call(drawBackground, cutscoreSet, x, y, height, true);
+        }
       }
 
       return {stateData: stateData, studentData: studentData};
@@ -18428,27 +18466,18 @@ var cutscores = function (selector, args) {
             .style('width', ratio * 100 + '%')
             .style('display', 'inline-block')
             .style('position', 'absolute')
-            .style(i ? 'right' : 'left', 0);
+            .style(i % 2 ? 'right' : 'left', 0);
 
           createSVG(splitWrapper, 'absolute', ratio)
             .call(drawBackground, cutscoreSet, x, y, height);
+          if (params.showGrowth) {
+            createSVG(splitWrapper, 'absolute', ratio)
+              .call(drawBackground, cutscoreSet, x, y, height, true);
+          }
         } else {
           createSVG(container).call(drawBackground, cutscoreSet, x, y, height);
           if (params.showGrowth) {
-            d3.select('#uiContainer')
-              .append('button')
-              .text('Hide Growth Cuts')
-              .on('click', function () {
-                var isHidden = d3.select('#growth_cuts').style('display') === 'none';
-
-                d3.select(this)
-                  .text(isHidden ? 'Hide Growth Cuts' : 'Show Growth Cuts');
-
-                d3.select('#growth_cuts')
-                  .style('display', isHidden ? 'block' : 'none');
-              })
             createSVG(container)
-              .attr('id', 'growth_cuts')
               .call(drawBackground, cutscoreSet, x, y, height, true);
           }
         }
@@ -18481,13 +18510,16 @@ var cutscores = function (selector, args) {
         .call(drawScores, scores, x, y)
         .on('scoreSelected trajectoryChanged', function () {
           trajectories[d3.event.type](d3.event.detail);
-        })
+        });
 
     })
     .then(function () {
       if (window['pym']) {
         window.pymChild = new pym.Child();
         window.pymChild.sendHeight();
+      }
+      if (params.showGrowth) {
+        addGrowthCutsToggle();
       }
     });
 }

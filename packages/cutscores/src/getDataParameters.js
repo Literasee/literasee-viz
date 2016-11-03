@@ -16,7 +16,8 @@ export default function (selector = 'body', args) {
     minYear: 1900,
     maxYear: 2100,
     subject: null, // default subject is whatever is listed first in the data
-    student: null // student is optional
+    student: null, // student is optional
+    showGrowth: false
   });
 
   // options clean up

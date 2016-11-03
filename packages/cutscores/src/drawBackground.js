@@ -1,34 +1,42 @@
-export default function (svg, data, x, y, height) {
-  var cut_scores = data.cuts;
-  var numLevels = data.levels.length;
+export default function (svg, data, x, y, height, isGrowth) {
+  var cut_scores = isGrowth ? data.cuts_growth : data.cuts;
+  var levels = isGrowth ? data.levels_growth : data.levels;
+  var numLevels = levels.length;
+
   const opacityScale = d3.scaleLinear()
     .domain([0, numLevels - 1])
     .range([0.25, 0.05]);
+  const growthColorScale = d3.scaleQuantize()
+    .domain([0, numLevels - 1])
+    .range(['#d73027', '#f46d43', '#fdae61', '#fee090', '#ffffbf', '#abd9e9']);
 
-  // create an X axis using the original length of cut_scores as number of ticks
-  var xAxis = d3.axisBottom(x)
-    .ticks(cut_scores.length - 2)
-    .tickFormat((d, i) => {
-      // use the test field for tick labels
-      // +1 skips the fake data point we created at the front of the array
-      var realCut = cut_scores[i+1];
-      if (realCut.year) return `${realCut.test} / ${realCut.year}`;
-      return `${realCut.test}`;
-    })
-    .tickSizeOuter(0);
+  if (!isGrowth) {
+    // create an X axis using the original length of cut_scores as number of ticks
+    var xAxis = d3.axisBottom(x)
+      .ticks(cut_scores.length - 2)
+      .tickFormat((d, i) => {
+        // use the test field for tick labels
+        // +1 skips the fake data point we created at the front of the array
+        var realCut = cut_scores[i+1];
+        if (realCut.year) return `${realCut.test} / ${realCut.year}`;
+        return `${realCut.test}`;
+      })
+      .tickSizeOuter(0);
 
-  // draw X axis below chart
-  svg
-    .append('g')
-    .attr('transform', `translate(0, ${height})`)
-    .call(xAxis)
-    .selectAll('.domain')
-    .style('stroke', 'white');
+    // draw X axis below chart
+    svg
+      .append('g')
+      .attr('transform', `translate(0, ${height})`)
+      .call(xAxis)
+      .selectAll('.domain')
+      .style('stroke', 'white');
 
-  // Y axes, for debugging only
-  // svg.append('g').call(d3.axisLeft(y));
-  // svg.append('g').attr('transform', `translate(${width}, 0)`).call(d3.axisRight(y));
-
+    // Y axes, for debugging only
+    // svg.append('g').call(d3.axisLeft(y));
+    // svg.append('g').attr('transform', `translate(${width}, 0)`).call(d3.axisRight(y));
+  } else {
+    svg.attr('class', 'growth_cuts');
+  }
 
   // generate keys from data
   var keys = ['hoss'];
@@ -68,6 +76,7 @@ export default function (svg, data, x, y, height) {
     .enter()
       .append('g')
       .attr('class', 'layer')
+      .style('pointer-events', 'auto')
       .on('mouseover', function () {
         d3.select(this)
           .select('path')
@@ -93,8 +102,14 @@ export default function (svg, data, x, y, height) {
   // chart is (currently) only rendered once, so everything happens in enter
   bands
     .append('path')
-    .style('fill', '#333')
-    .style('fill-opacity', (d, i) => opacityScale(i))
+    .style('fill', (d, i) => {
+      if (!isGrowth) return '#333';
+      return growthColorScale(i);
+    })
+    .style('fill-opacity', (d, i) => {
+      if (!isGrowth) return opacityScale(i);
+      return 0.6;
+    })
     .style('stroke', 'white')
     .style('stroke-width', 1)
     .attr('d', area);
@@ -112,7 +127,7 @@ export default function (svg, data, x, y, height) {
     })
     .attr('dy', '0.4em')
     .style('fill-opacity', 0)
-    .text((d, i) => data.levels[i].label);
+    .text((d, i) => levels[i].label);
 
   // next line only needed if chart will be updated
   // bands.attr('d', area);

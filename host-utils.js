@@ -1,5 +1,5 @@
 document.domain = 'literasee.io';
-setTimeout(createMaximizeButtons, 5000);
+setTimeout(createMaximizeButtons, 6000);
 
 function createMaximizeButtons () {
   document.querySelectorAll('[data-pym-src]').forEach(d => {
