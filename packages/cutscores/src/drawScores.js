@@ -48,6 +48,18 @@ export default function (svg, scores, x, y) {
     svg.dispatch('scoreSelected', {detail: {el: null, d: null}});
   }
 
+  var tooltip = d3.select('body')
+    .append('div')
+    .style('position', 'absolute')
+    .style('z-index', '10')
+    .style('visibility', 'hidden')
+    .style('background-color', 'lightgreen')
+    .style('border-radius', '4px')
+    .style('border', '1px solid black')
+    .style('padding', '1rem')
+    .style('font-size', 11)
+    .style('font-family', 'sans-serif');
+
   svg
     .selectAll('circle')
     .data(scores)
@@ -62,11 +74,24 @@ export default function (svg, scores, x, y) {
       .style('stroke-width', 2)
       .style('pointer-events', 'auto') // needed because parent ignores events
       .on('mouseover mouseout', function (d) {
+        if (d3.event.type === 'mouseover') {
+          tooltip
+            .text(d.score)
+            .style('visibility', 'visible');
+        } else {
+          tooltip.style('visibility', 'hidden');
+        }
+
         if (!d.trajectories) return;
         if (d3.select(this).attr('data-is-selected') === 'true') return;
 
         d3.select(this)
           .style('cursor', d3.event.type === 'mouseover' ? 'pointer' : 'default');
+      })
+      .on('mousemove', function (d) {
+        tooltip
+          .style('top', d3.event.pageY - 10 + 'px')
+          .style('left', d3.event.pageX + 10 + 'px');
       })
       .on('click', function (d, i, collection) {
         if (!d.trajectories) return;
