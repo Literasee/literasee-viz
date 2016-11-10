@@ -24,7 +24,9 @@ function filterBySubjectAndYearBounds (subject, minYear, maxYear, stateData) {
 }
 
 export default function ({state, student, subject, minYear, maxYear}) {
-  const base = 'https://data.literasee.io';
+  const base = window.location.host.indexOf('local') !== 0
+    ? 'https://data.literasee.io'
+    : 'http://local.literasee.io:4000';
 
   const filter = filterBySubjectAndYearBounds.bind(
     null,
