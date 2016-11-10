@@ -858,7 +858,9 @@ var loadData = function (ref) {
   var minYear = ref.minYear;
   var maxYear = ref.maxYear;
 
-  var base = 'https://data.literasee.io';
+  var base = window.location.host.indexOf('local') !== 0
+    ? 'https://data.literasee.io'
+    : 'http://local.literasee.io:4000';
 
   var filter = filterBySubjectAndYearBounds.bind(
     null,
@@ -18223,12 +18225,15 @@ var drawTrajectories = function (svg, scores, x, y) {
       }));
     });
 
-    svg
+    var stuff = svg
       .selectAll('.trajectory' + score.level)
       .data(data)
       .enter()
-      .append('path')
-        .attr('id', function (d) { return 'test' + score.level + '_trajectory_' + d[0].percentile; })
+      .append('g')
+      .attr('class', 'trajectory')
+        .attr('id', function (d) { return 'test' + score.level + '_trajectory_' + d[0].percentile; });
+
+    stuff.append('path')
         .attr('class', 'trajectory trajectory' + score.level)
         .attr('d', function (d) { return line(d); })
         .style('stroke', function (d) {
@@ -18237,6 +18242,13 @@ var drawTrajectories = function (svg, scores, x, y) {
         .style('stroke-width', 2)
         .style('stroke-opacity', 0)
         .style('fill', 'none');
+
+    stuff
+      .append('text')
+      .attr('x', function (d) { return x(d[d.length - 1].level); })
+      .attr('y', function (d) { return y(d[d.length - 1].score); })
+      .style('opacity', 0)
+      .text(function (d) { return d[0].percentile; });
   });
 
   svg
@@ -18264,9 +18276,16 @@ var drawTrajectories = function (svg, scores, x, y) {
     var d = ref.d;
     var pct = ref.pct;
 
-    d3.selectAll('.trajectory').style('stroke-opacity', 0);
+    d3.selectAll('.trajectory')
+      .select('text')
+      .style('opacity', 0)
+    d3.selectAll('.trajectory')
+      .style('stroke-opacity', 0);
 
-    var activeLine = d3.select('#test' + d.level + '_trajectory_' + pct);
+    d3.select('#test' + d.level + '_trajectory_' + pct)
+      .select('text')
+      .style('opacity', 1);
+    var activeLine = d3.select('#test' + d.level + '_trajectory_' + pct).select('path');
     activeLine.style('stroke-opacity', 1);
 
     // only d actually needs to be set here, the rest are only for live editing
@@ -18290,6 +18309,9 @@ var drawScores = function (svg, scores, x, y) {
       .style('stroke-width', 4)
       .style('cursor', 'ns-resize');
 
+    var scrollId;
+    var diff = 0;
+
     // scroll and drag listener
     function changeTrajectory () {
       if (d3.event.type === 'wheel') { d3.event.preventDefault(); }
@@ -18297,6 +18319,21 @@ var drawScores = function (svg, scores, x, y) {
       var delta = d3.event.type === 'wheel' ? d3.event.deltaY : Math.round(-d3.event.dy);
       var pct = +c.attr('data-trajectory-percentile');
       var newPct = Math.min(99, Math.max(1, pct + delta));
+
+      clearTimeout(scrollId);
+      scrollId = setTimeout(function () {
+        diff = 0;
+      }, 400);
+      diff += delta;
+      // [35, 65].forEach(num => {
+      //   if (Math.abs(diff) < 100 && Math.abs(newPct - num) < 10) {
+      //     console.log('snap to', num);
+      //     newPct = num;
+      //   }
+      // });
+
+      if (Math.abs(diff) < 50 && Math.abs(newPct - 65) < 10) { newPct = 65; }
+      if (Math.abs(diff) < 50 && Math.abs(newPct - 35) < 10) { newPct = 35; }
 
       if (newPct !== pct) {
         c.attr('data-trajectory-percentile', newPct);
