@@ -7,13 +7,27 @@ export default function (svg, scores, x, y) {
       .style('stroke-width', 4)
       .style('cursor', 'ns-resize');
 
+    let scrollId;
+    let diff = 0;
+
     // scroll and drag listener
     function changeTrajectory () {
       if (d3.event.type === 'wheel') d3.event.preventDefault();
 
       const delta = d3.event.type === 'wheel' ? d3.event.deltaY : Math.round(-d3.event.dy);
       const pct = +c.attr('data-trajectory-percentile');
-      const newPct = Math.min(99, Math.max(1, pct + delta));
+      let newPct = Math.min(99, Math.max(1, pct + delta));
+
+      clearTimeout(scrollId);
+      scrollId = setTimeout(() => {
+        diff = 0;
+      }, 400);
+      diff += delta;
+
+      const targets = _.map(d.targets, 'percentile');
+      targets.forEach(num => {
+        if (Math.abs(diff) < 50 && Math.abs(newPct - num) < 10) newPct = num;
+      });
 
       if (newPct !== pct) {
         c.attr('data-trajectory-percentile', newPct);
@@ -50,15 +64,7 @@ export default function (svg, scores, x, y) {
 
   var tooltip = d3.select('body')
     .append('div')
-    .style('position', 'absolute')
-    .style('z-index', '10')
-    .style('visibility', 'hidden')
-    .style('background-color', 'lightgreen')
-    .style('border-radius', '4px')
-    .style('border', '1px solid black')
-    .style('padding', '1rem')
-    .style('font-size', 11)
-    .style('font-family', 'sans-serif');
+    .attr('class', 'tooltip');
 
   svg
     .selectAll('circle')
@@ -90,8 +96,8 @@ export default function (svg, scores, x, y) {
       })
       .on('mousemove', function (d) {
         tooltip
-          .style('top', d3.event.pageY - 10 + 'px')
-          .style('left', d3.event.pageX + 10 + 'px');
+          .style('top', d3.event.pageY + 'px')
+          .style('left', d3.event.pageX + 'px');
       })
       .on('click', function (d, i, collection) {
         if (!d.trajectories) return;

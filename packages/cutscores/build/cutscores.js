@@ -7,6 +7,7 @@ var index$2 = function (str) {
 	});
 };
 
+/* eslint-disable no-unused-vars */
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -152,6 +153,16 @@ function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
 
+/**
+ * lodash (Custom Build) <https://lodash.com/>
+ * Build: `lodash modularize exports="npm" -o ./`
+ * Copyright jQuery Foundation and other contributors <https://jquery.org/>
+ * Released under MIT license <https://lodash.com/license>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ */
+
+/** Used as references for various `Number` constants. */
 var INFINITY = 1 / 0;
 
 /** `Object#toString` result references. */
@@ -774,6 +785,7 @@ function responsivefy(svg) {
   }
 }
 
+// convert kebab-case names from URL or HTML attrs to camelCase
 function camelizeKeys (o) {
   var out = {};
   Object.keys(o).forEach(function (key) { return out[index$6(key)] = o[key]; });
@@ -18225,30 +18237,107 @@ var drawTrajectories = function (svg, scores, x, y) {
       }));
     });
 
-    var stuff = svg
+    var groups = svg
       .selectAll('.trajectory' + score.level)
       .data(data)
       .enter()
       .append('g')
       .attr('class', 'trajectory')
-        .attr('id', function (d) { return 'test' + score.level + '_trajectory_' + d[0].percentile; });
+      .attr('id', function (d) { return 'test' + score.level + '_trajectory_' + d[0].percentile; })
+      .style('opacity', 0);
 
-    stuff.append('path')
-        .attr('class', 'trajectory trajectory' + score.level)
-        .attr('d', function (d) { return line(d); })
-        .style('stroke', function (d) {
-          return colorScale(+d[0].percentile / 100);
-        })
-        .style('stroke-width', 2)
-        .style('stroke-opacity', 0)
-        .style('fill', 'none');
+    groups
+      .append('path')
+      .attr('class', 'trajectory' + score.level)
+      .attr('d', function (d) { return line(d); })
+      .style('stroke', function (d) {
+        return colorScale(+d[0].percentile / 100);
+      })
+      .style('stroke-width', 2)
+      .style('fill', 'none');
 
-    stuff
+    if (score.targets) {
+      var targets = _.map(score.targets, 'percentile');
+      var trajScores = groups.selectAll('.trajectory-score')
+        .data(function (d) { return d; })
+        .enter()
+          .filter(function (d, i) {
+            return i && targets.indexOf(d.percentile) > -1;
+          })
+          .append('g')
+          .attr('class', 'trajectoryTarget')
+          .attr('transform', function (d) {
+            return ("translate(" + (x(d.level)) + ", " + (y(d.score)) + ")");
+          });
+
+      trajScores
+        .append('rect')
+        .attr('x', -20)
+        .attr('y', -10);
+
+      trajScores
+        .append('text')
+        .attr('y', 4)
+        .text(function (d) { return d.score; });
+    }
+
+    var midpointLevel;
+    var midpointScore;
+
+    var trajectoryLabel = groups
       .append('text')
-      .attr('x', function (d) { return x(d[d.length - 1].level); })
-      .attr('y', function (d) { return y(d[d.length - 1].score); })
-      .style('opacity', 0)
-      .text(function (d) { return d[0].percentile; });
+      .each(function (d) {
+        var half = d.length / 2;
+        var middleItems;
+        // even number of items
+        if (half === parseInt(half, 10)) {
+          middleItems = [d[half - 1], d[half]];
+        } else {
+          // odd number of items
+          middleItems = [d[Math.floor(half)], d[Math.floor(half)]];
+        }
+        midpointLevel = (middleItems[0].level + middleItems[1].level) / 2;
+        midpointScore = (middleItems[0].score + middleItems[1].score) / 2;
+      })
+      .attr('x', function (d) { return x(midpointLevel); })
+      .attr('y', function (d) { return y(d[d.length - 1].score) + 40; })
+      .attr('class', 'trajectoryPercentile');
+
+    trajectoryLabel
+      .append('tspan')
+      .style('text-anchor', 'middle')
+      .attr('x', x(midpointLevel))
+      .text(function (d) {
+        var pct = d[0].percentile;
+        var suffix = 'th';
+
+        switch (pct.toString().substr(-1)) {
+          case '1':
+            suffix = 'st';
+            break;
+          case '2':
+            suffix = 'nd';
+            break;
+          case '3':
+            suffix = 'rd';
+            break;
+        }
+
+        return pct + suffix + ' percentile';
+      });
+
+    if (score.targets) {
+      trajectoryLabel
+        .append('tspan')
+        .style('text-anchor', 'middle')
+        .attr('x', x(midpointLevel))
+        .attr('dy', '1.2em')
+        .text(function (d) {
+          var pct = d[0].percentile;
+          var target = _.find(score.targets, {percentile: pct});
+          return target && target.label;
+        })
+    }
   });
 
   svg
@@ -18267,31 +18356,26 @@ var drawTrajectories = function (svg, scores, x, y) {
     // we only care if we need to turn things off
     if (el) { return; }
 
-    svg.selectAll('.trajectory').style('stroke-opacity', 0);
+    svg.selectAll('.trajectory').style('opacity', 0);
     svg.select('#trajectory-highlight').interrupt().attr('stroke-opacity', 0);
   }
 
   svg.trajectoryChanged = function (ref) {
-    var el = ref.el;
     var d = ref.d;
     var pct = ref.pct;
 
     d3.selectAll('.trajectory')
-      .select('text')
-      .style('opacity', 0)
-    d3.selectAll('.trajectory')
-      .style('stroke-opacity', 0);
+      .style('opacity', 0);
 
     d3.select('#test' + d.level + '_trajectory_' + pct)
-      .select('text')
       .style('opacity', 1);
-    var activeLine = d3.select('#test' + d.level + '_trajectory_' + pct).select('path');
-    activeLine.style('stroke-opacity', 1);
+
+    var traj = d3.select('#test' + d.level + '_trajectory_' + pct);
 
     // only d actually needs to be set here, the rest are only for live editing
     svg
       .select('#trajectory-highlight')
-      .attr('d', activeLine.attr('d'))
+      .attr('d', traj.select('path').attr('d'))
       .attr('stroke', window.dashes.color)
       .attr('stroke-width', window.dashes.width)
       .attr('stroke-opacity', window.dashes.opacity)
@@ -18325,15 +18409,11 @@ var drawScores = function (svg, scores, x, y) {
         diff = 0;
       }, 400);
       diff += delta;
-      // [35, 65].forEach(num => {
-      //   if (Math.abs(diff) < 100 && Math.abs(newPct - num) < 10) {
-      //     console.log('snap to', num);
-      //     newPct = num;
-      //   }
-      // });
 
-      if (Math.abs(diff) < 50 && Math.abs(newPct - 65) < 10) { newPct = 65; }
-      if (Math.abs(diff) < 50 && Math.abs(newPct - 35) < 10) { newPct = 35; }
+      var targets = _.map(d.targets, 'percentile');
+      targets.forEach(function (num) {
+        if (Math.abs(diff) < 50 && Math.abs(newPct - num) < 10) { newPct = num; }
+      });
 
       if (newPct !== pct) {
         c.attr('data-trajectory-percentile', newPct);
@@ -18370,15 +18450,7 @@ var drawScores = function (svg, scores, x, y) {
 
   var tooltip = d3.select('body')
     .append('div')
-    .style('position', 'absolute')
-    .style('z-index', '10')
-    .style('visibility', 'hidden')
-    .style('background-color', 'lightgreen')
-    .style('border-radius', '4px')
-    .style('border', '1px solid black')
-    .style('padding', '1rem')
-    .style('font-size', 11)
-    .style('font-family', 'sans-serif');
+    .attr('class', 'tooltip');
 
   svg
     .selectAll('circle')
@@ -18410,8 +18482,8 @@ var drawScores = function (svg, scores, x, y) {
       })
       .on('mousemove', function (d) {
         tooltip
-          .style('top', d3.event.pageY - 10 + 'px')
-          .style('left', d3.event.pageX + 10 + 'px');
+          .style('top', d3.event.pageY + 'px')
+          .style('left', d3.event.pageX + 'px');
       })
       .on('click', function (d, i, collection) {
         if (!d.trajectories) { return; }

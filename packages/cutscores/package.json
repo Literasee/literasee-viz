@@ -15,7 +15,7 @@
     "test": "ava --require reify",
     "clean": "rm -rf build && mkdir build",
     "build": "rollup -c -o build/$npm_package_name.js",
-    "watch": "npm run build -- -w",
+    "watch": "onchange 'src/*.js' -- npm run build",
     "minify": "uglifyjs build/$npm_package_name.js -c -m -o build/$npm_package_name.min.js",
     "start": "npm run watch",
     "prepublish": "npm run clean && npm run build && npm run minify",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "ava": "0.16.0",
+    "onchange": "3.0.2",
     "reify": "0.3.8",
     "rollup": "0.36.0",
     "rollup-plugin-buble": "0.14.0",

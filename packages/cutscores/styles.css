@@ -1,0 +1,50 @@
+#uiContainer {
+  opacity: 0.1;
+  position: absolute;
+  top:0;
+  right: 0;
+  z-index: 1000;
+}
+#uiContainer:hover {
+  opacity: 1;
+}
+#uiContainer * {
+  outline: none;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 10;
+  visibility: hidden;
+  background-color: lightgrey;
+  border-radius: 3px;
+  border: 1px solid black;
+  padding: 0.3rem 0.4rem;
+  font-size: 1.1rem;
+  font-family: sans-serif;
+  margin-top: -2.5rem;
+  margin-left: -1.3rem;
+}
+
+.trajectoryPercentile {
+  font-family: sans-serif;
+}
+
+.trajectoryTarget rect {
+  x: -15px;
+  y: -8px;
+  width: 30px;
+  height: 16px;
+  fill: white;
+  fill-opacity: 0.9;
+  stroke: black;
+  rx: 3;
+  ry: 3;
+}
+
+.trajectoryTarget text {
+  font-family: sans-serif;
+  font-size: 0.7em;
+  fill: black;
+  text-anchor: middle;
+}

@@ -34,20 +34,107 @@ export default function (svg, scores, x, y) {
       }));
     });
 
-    svg
+    const groups = svg
       .selectAll('.trajectory' + score.level)
       .data(data)
       .enter()
+      .append('g')
+      .attr('class', 'trajectory')
+      .attr('id', d => 'test' + score.level + '_trajectory_' + d[0].percentile)
+      .style('opacity', 0);
+
+    groups
       .append('path')
-        .attr('id', d => 'test' + score.level + '_trajectory_' + d[0].percentile)
-        .attr('class', 'trajectory trajectory' + score.level)
-        .attr('d', d => line(d))
-        .style('stroke', d => {
-          return colorScale(+d[0].percentile / 100);
+      .attr('class', 'trajectory' + score.level)
+      .attr('d', d => line(d))
+      .style('stroke', d => {
+        return colorScale(+d[0].percentile / 100);
+      })
+      .style('stroke-width', 2)
+      .style('fill', 'none');
+
+    if (score.targets) {
+      const targets = _.map(score.targets, 'percentile');
+      const trajScores = groups.selectAll('.trajectory-score')
+        .data(d => d)
+        .enter()
+          .filter((d, i) => {
+            return i && targets.indexOf(d.percentile) > -1;
+          })
+          .append('g')
+          .attr('class', 'trajectoryTarget')
+          .attr('transform', d => {
+            return `translate(${x(d.level)}, ${y(d.score)})`;
+          });
+
+      trajScores
+        .append('rect')
+        .attr('x', -20)
+        .attr('y', -10);
+
+      trajScores
+        .append('text')
+        .attr('y', 4)
+        .text(d => d.score);
+    }
+
+    var midpointLevel;
+    var midpointScore;
+
+    const trajectoryLabel = groups
+      .append('text')
+      .each(d => {
+        const half = d.length / 2;
+        let middleItems;
+        // even number of items
+        if (half === parseInt(half, 10)) {
+          middleItems = [d[half - 1], d[half]];
+        } else {
+          // odd number of items
+          middleItems = [d[Math.floor(half)], d[Math.floor(half)]];
+        }
+        midpointLevel = (middleItems[0].level + middleItems[1].level) / 2;
+        midpointScore = (middleItems[0].score + middleItems[1].score) / 2;
+      })
+      .attr('x', d => x(midpointLevel))
+      .attr('y', d => y(d[d.length - 1].score) + 40)
+      .attr('class', 'trajectoryPercentile');
+
+    trajectoryLabel
+      .append('tspan')
+      .style('text-anchor', 'middle')
+      .attr('x', x(midpointLevel))
+      .text(d => {
+        const pct = d[0].percentile;
+        let suffix = 'th';
+
+        switch (pct.toString().substr(-1)) {
+          case '1':
+            suffix = 'st';
+            break;
+          case '2':
+            suffix = 'nd';
+            break;
+          case '3':
+            suffix = 'rd';
+            break;
+        }
+
+        return pct + suffix + ' percentile';
+      });
+
+    if (score.targets) {
+      trajectoryLabel
+        .append('tspan')
+        .style('text-anchor', 'middle')
+        .attr('x', x(midpointLevel))
+        .attr('dy', '1.2em')
+        .text(d => {
+          const pct = d[0].percentile;
+          const target = _.find(score.targets, {percentile: pct});
+          return target && target.label;
         })
-        .style('stroke-width', 2)
-        .style('stroke-opacity', 0)
-        .style('fill', 'none');
+    }
   });
 
   svg
@@ -63,20 +150,23 @@ export default function (svg, scores, x, y) {
     // we only care if we need to turn things off
     if (el) return;
 
-    svg.selectAll('.trajectory').style('stroke-opacity', 0);
+    svg.selectAll('.trajectory').style('opacity', 0);
     svg.select('#trajectory-highlight').interrupt().attr('stroke-opacity', 0);
   }
 
-  svg.trajectoryChanged = function ({el, d, pct}) {
-    d3.selectAll('.trajectory').style('stroke-opacity', 0);
+  svg.trajectoryChanged = function ({d, pct}) {
+    d3.selectAll('.trajectory')
+      .style('opacity', 0);
 
-    var activeLine = d3.select('#test' + d.level + '_trajectory_' + pct);
-    activeLine.style('stroke-opacity', 1);
+    d3.select('#test' + d.level + '_trajectory_' + pct)
+      .style('opacity', 1);
+
+    const traj = d3.select('#test' + d.level + '_trajectory_' + pct);
 
     // only d actually needs to be set here, the rest are only for live editing
     svg
       .select('#trajectory-highlight')
-      .attr('d', activeLine.attr('d'))
+      .attr('d', traj.select('path').attr('d'))
       .attr('stroke', window.dashes.color)
       .attr('stroke-width', window.dashes.width)
       .attr('stroke-opacity', window.dashes.opacity)
