@@ -64,7 +64,7 @@ export default function (svg, scores, x, y) {
             if (!i || !target) return false;
 
             // limit the number of targets shown
-            const limit = target.limit || 3;
+            const limit = target.timeFrame || 3;
             return i <= limit;
           })
           .append('g')

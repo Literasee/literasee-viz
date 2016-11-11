@@ -18267,7 +18267,7 @@ var drawTrajectories = function (svg, scores, x, y) {
             if (!i || !target) { return false; }
 
             // limit the number of targets shown
-            var limit = target.limit || 3;
+            var limit = target.timeFrame || 3;
             return i <= limit;
           })
           .append('g')
