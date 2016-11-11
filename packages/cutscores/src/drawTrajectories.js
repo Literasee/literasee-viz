@@ -59,7 +59,8 @@ export default function (svg, scores, x, y) {
         .data(d => d)
         .enter()
           .filter((d, i) => {
-            return i && targets.indexOf(d.percentile) > -1;
+            // only display targets for next 3 years
+            return i && i < 4 && targets.indexOf(d.percentile) > -1;
           })
           .append('g')
           .attr('class', 'trajectoryTarget')
@@ -97,7 +98,7 @@ export default function (svg, scores, x, y) {
         midpointScore = (middleItems[0].score + middleItems[1].score) / 2;
       })
       .attr('x', d => x(midpointLevel))
-      .attr('y', d => y(d[d.length - 1].score) + 40)
+      .attr('y', d => y(d[d.length - 1].score) + 45)
       .attr('class', 'trajectoryPercentile');
 
     trajectoryLabel
