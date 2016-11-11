@@ -59,8 +59,13 @@ export default function (svg, scores, x, y) {
         .data(d => d)
         .enter()
           .filter((d, i) => {
-            // only display targets for next 3 years
-            return i && i < 4 && targets.indexOf(d.percentile) > -1;
+            const target = _.find(score.targets, {percentile: d.percentile});
+            // when i is 0 we're not examining a future score
+            if (!i || !target) return false;
+
+            // limit the number of targets shown
+            const limit = target.limit || 3;
+            return i <= limit;
           })
           .append('g')
           .attr('class', 'trajectoryTarget')
