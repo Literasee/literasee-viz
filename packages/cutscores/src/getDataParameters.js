@@ -24,6 +24,7 @@ export default function (selector = 'body', args) {
   params.state = params.state.toUpperCase();
   params.minYear = parseInt(params.minYear, 10);
   params.maxYear = parseInt(params.maxYear, 10);
+  params.showGrowth = params.showGrowth === 'true';
 
   return params;
 }
