@@ -10,33 +10,10 @@ export default function (svg, data, x, y, height, isGrowth) {
     .domain([0, numLevels - 1])
     .range(['#d73027', '#f46d43', '#fdae61', '#fee090', '#ffffbf', '#abd9e9']);
 
-  if (!isGrowth) {
-    // create an X axis using the original length of cut_scores as number of ticks
-    var xAxis = d3.axisBottom(x)
-      .ticks(cut_scores.length - 2)
-      .tickFormat((d, i) => {
-        // use the test field for tick labels
-        // +1 skips the fake data point we created at the front of the array
-        var realCut = cut_scores[i+1];
-        if (realCut.year) return `${realCut.test} / ${realCut.year}`;
-        return `${realCut.test}`;
-      })
-      .tickSizeOuter(0);
-
-    // draw X axis below chart
-    svg
-      .append('g')
-      .attr('transform', `translate(0, ${height})`)
-      .call(xAxis)
-      .selectAll('.domain')
-      .style('stroke', 'white');
-
-    // Y axes, for debugging only
-    // svg.append('g').call(d3.axisLeft(y));
-    // svg.append('g').attr('transform', `translate(${width}, 0)`).call(d3.axisRight(y));
-  } else {
-    svg.attr('class', 'growth_cuts');
-  }
+  const g = svg
+    .append('g')
+    .classed('cuts', true)
+    .classed('growth_cuts', isGrowth);
 
   // generate keys from data
   var keys = ['hoss'];
@@ -70,7 +47,7 @@ export default function (svg, data, x, y, height, isGrowth) {
     .y1(d => y(d[1]))
     .curve(d3.curveCatmullRom.alpha(0.5));
 
-  var bands = svg
+  var bands = g
     .selectAll('.layer')
     .data(stack(cut_scores))
     .enter()

@@ -19,6 +19,8 @@ import drawBackground from './drawBackground';
 import drawGrowthLines from './drawGrowthLines';
 import drawTrajectories from './drawTrajectories';
 import drawScores from './drawScores';
+import drawAxis from './drawAxis';
+import configureZoom from './configureZoom';
 
 const w = 800;
 const h = 400;
@@ -50,6 +52,8 @@ function addGrowthCutsToggle () {
 export default function (selector = 'body', args) {
   const container = d3.select(selector).style('position', 'relative');
   const params = getDataParameters(selector, args);
+  // one SVG holds all the layers, implemented inside their own g elements
+  const g = createSVG(container);
 
   loadData(params)
     .then(({stateData, studentData}) => {
@@ -58,16 +62,14 @@ export default function (selector = 'body', args) {
         cutscoreSet.cuts = addGutterCuts(cutscoreSet.cuts);
         cutscoreSet.cuts_growth = addGutterCuts(cutscoreSet.cuts_growth);
         const { x, y } = createCutScales(cutscoreSet.cuts, width, height);
-        const position = params.showGrowth ? 'absolute' : 'relative';
-        // if the cuts are the only thing we're rendering
-        // their svg tag needs to be relatively positioned
-        // to ensure the chart is included in the page layout
-        createSVG(container, position)
-          .call(drawBackground, cutscoreSet, x, y, height);
+        // draw normal cutscores layer
+        g.call(drawBackground, cutscoreSet, x, y, height);
+        // draw growth cutscores layer if requested
         if (params.showGrowth) {
-          createSVG(container)
-            .call(drawBackground, cutscoreSet, x, y, height, true);
+          g.call(drawBackground, cutscoreSet, x, y, height, true);
         }
+        // draw axis on its own layer so it can mask during zoom
+        g.call(drawAxis, cutscoreSet, x, y, width, height, margin);
       }
 
       return {stateData, studentData};
@@ -77,6 +79,9 @@ export default function (selector = 'body', args) {
 
       let allCuts = _.flatten(_.map(stateData, 'cuts'));
       const subjectData = studentData.data.subjects[stateData[0].subject];
+      let cutsContainer;
+      let growthCutsContainer;
+      let axisContainer;
 
       stateData.forEach((cutscoreSet, i) => {
         // get the ratio before modifying the cuts
@@ -95,26 +100,51 @@ export default function (selector = 'body', args) {
         if (ratio < 1) {
           x.range([0, w * ratio - margin.left - margin.right]);
 
-          const splitWrapper = container
-            .append('div')
-            .attr('id', Date.now())
-            .style('width', ratio * 100 + '%')
-            .style('display', 'inline-block')
-            .style('position', 'absolute')
-            .style(i % 2 ? 'right' : 'left', 0);
+          // draw normal cutscores layer
+          if (!cutsContainer) cutsContainer = g.append('g').attr('class', 'cutsContainer');
+          cutsContainer.call(drawBackground, cutscoreSet, x, y, height);
 
-          createSVG(splitWrapper, 'absolute', ratio)
-            .call(drawBackground, cutscoreSet, x, y, height);
+          // draw growth cutscores layer if requested
           if (params.showGrowth) {
-            createSVG(splitWrapper, 'absolute', ratio)
-              .call(drawBackground, cutscoreSet, x, y, height, true);
+            if (!growthCutsContainer) {
+              growthCutsContainer = g.append('g').attr('class', 'growthCutsContainer');
+            }
+            growthCutsContainer.call(drawBackground, cutscoreSet, x, y, height, true);
           }
+
+          // draw axis on its own layer so it can mask during zoom
+          if (!axisContainer) axisContainer = g.append('g').attr('class', 'axes');
+          axisContainer.call(drawAxis, cutscoreSet, x, y, width, height, margin, ratio);
+
+          // if there was an assessment change (split)
+          // we have to position the cuts and axis 
+          // that go on the right side
+          if (i > 0) {
+            const trans = `translate(${width * (1 - ratio)}, 0)`;
+
+            cutsContainer
+              .select('.cuts:last-child')
+              .attr('transform', trans);
+            
+            if (params.showGrowth) {
+              growthCutsContainer
+                .select('.cuts:last-child')
+                .attr('transform', trans);
+            }
+
+            g.selectAll('.axis')
+              .attr('transform', (d, j) => j ? trans : null);
+          }
+            
         } else {
-          createSVG(container).call(drawBackground, cutscoreSet, x, y, height);
+          // draw normal cutscores layer
+          g.call(drawBackground, cutscoreSet, x, y, height);
+          // draw growth cutscores layer if requested
           if (params.showGrowth) {
-            createSVG(container)
-              .call(drawBackground, cutscoreSet, x, y, height, true);
+            g.call(drawBackground, cutscoreSet, x, y, height, true);
           }
+          // draw axis on its own layer so it can mask during zoom
+          g.call(drawAxis, cutscoreSet, x, y, width, height, margin);
         }
       });
 
@@ -134,17 +164,23 @@ export default function (selector = 'body', args) {
           .style('position', 'relative')
           .style('pointer-events', 'none');
 
-      // create a new, absolutely positioned SVG to house the growth lines
-      createSVG(layer).call(drawGrowthLines, scores, x, y);
-      // create a new, absolutely positioned SVG to house the trajectory lines
-      const trajectories = createSVG(layer).call(drawTrajectories, scores, x, y);
-      // create a new, absolutely positioned SVG to house the score bubbles
-      createSVG(layer)
-        .call(drawScores, scores, x, y)
+      // draw the growth lines on their own layer
+      g.call(drawGrowthLines, scores, x, y);
+      // draw the trajectory lines on their own layer
+      const trajectories = g.call(drawTrajectories, scores, x, y);
+      // draw the score bubbles on their own layer
+      g.call(drawScores, scores, x, y)
         .on('scoreSelected trajectoryChanged', () => {
           trajectories[d3.event.type](d3.event.detail);
         });
 
+    })
+    .then(() => {
+      // move the axes to the highest layer in the SVG
+      // so they can mask the other layers when zooming
+      d3.selectAll('.axis, .axes').raise();
+      // create zoom handling
+      configureZoom(container, w, h, margin);
     })
     .then(() => {
       if (window['pym']) {

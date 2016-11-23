@@ -1,4 +1,8 @@
 export default function (svg, scores, x, y) {
+  const g = svg
+    .append('g')
+    .attr('class', 'scores');
+
   function turnOn (el, d) {
     const c = d3.select(el);
 
@@ -66,7 +70,7 @@ export default function (svg, scores, x, y) {
     .append('div')
     .attr('class', 'tooltip');
 
-  svg
+  g
     .selectAll('circle')
     .data(scores)
     .enter()

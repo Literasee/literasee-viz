@@ -834,6 +834,7 @@ var getDataParameters = function (selector, args) {
   params.state = params.state.toUpperCase();
   params.minYear = parseInt(params.minYear, 10);
   params.maxYear = parseInt(params.maxYear, 10);
+  params.showGrowth = params.showGrowth === 'true';
 
   return params;
 }
@@ -17989,15 +17990,27 @@ var chartInit = function (w, h, margin) {
       if ( position === void 0 ) position = 'absolute';
       if ( ratio === void 0 ) ratio = 1;
 
-      return selection
+      var svg = selection
         .append('svg')
           .style('position', position)
           .style('pointer-events', 'none')
           .attr('width', w * ratio + margin.left + margin.right)
           .attr('height', h + margin.top + margin.bottom)
-          .call(responsivefy)
-        .append('g')
-          .attr('transform', ("translate(" + (margin.left) + ", " + (margin.top) + ")"));
+          .call(responsivefy);
+
+      var maskName = 'mask' + Date.now() + Math.random() * 10000;
+
+      svg
+        .append('defs')
+        .append('clipPath')
+          .attr('id', maskName)
+          .append('rect')
+            .attr('width', w * ratio + margin.left + margin.right)
+            .attr('height', h + margin.top + margin.bottom);
+        
+      return svg.append('g')
+          .attr('transform', ("translate(" + (margin.left) + ", " + (margin.top) + ")"))
+          .attr('clip-path', ("url(#" + maskName + ")"));
     }
   }
 }
@@ -18048,33 +18061,10 @@ var drawBackground = function (svg, data, x, y, height, isGrowth) {
     .domain([0, numLevels - 1])
     .range(['#d73027', '#f46d43', '#fdae61', '#fee090', '#ffffbf', '#abd9e9']);
 
-  if (!isGrowth) {
-    // create an X axis using the original length of cut_scores as number of ticks
-    var xAxis = d3.axisBottom(x)
-      .ticks(cut_scores.length - 2)
-      .tickFormat(function (d, i) {
-        // use the test field for tick labels
-        // +1 skips the fake data point we created at the front of the array
-        var realCut = cut_scores[i+1];
-        if (realCut.year) { return ((realCut.test) + " / " + (realCut.year)); }
-        return ("" + (realCut.test));
-      })
-      .tickSizeOuter(0);
-
-    // draw X axis below chart
-    svg
-      .append('g')
-      .attr('transform', ("translate(0, " + height + ")"))
-      .call(xAxis)
-      .selectAll('.domain')
-      .style('stroke', 'white');
-
-    // Y axes, for debugging only
-    // svg.append('g').call(d3.axisLeft(y));
-    // svg.append('g').attr('transform', `translate(${width}, 0)`).call(d3.axisRight(y));
-  } else {
-    svg.attr('class', 'growth_cuts');
-  }
+  var g = svg
+    .append('g')
+    .classed('cuts', true)
+    .classed('growth_cuts', isGrowth);
 
   // generate keys from data
   var keys = ['hoss'];
@@ -18108,7 +18098,7 @@ var drawBackground = function (svg, data, x, y, height, isGrowth) {
     .y1(function (d) { return y(d[1]); })
     .curve(d3.curveCatmullRom.alpha(0.5));
 
-  var bands = svg
+  var bands = g
     .selectAll('.layer')
     .data(stack(cut_scores))
     .enter()
@@ -18180,6 +18170,8 @@ var drawGrowthLines = function (svg, scores, x, y) {
     .curve(d3.curveCatmullRom.alpha(0.5));
 
   svg
+    .append('g')
+    .attr('class', 'lines')
     .selectAll('.line')
     .data(scores)
     .enter()
@@ -18222,6 +18214,10 @@ var drawTrajectories = function (svg, scores, x, y) {
     .y(function (d) { return y(d.score); })
     .curve(d3.curveCatmullRom.alpha(0.5));
 
+  var g = svg
+    .append('g')
+    .attr('class', 'trajectories');
+
   scores.forEach(function (score) {
     if (!score.trajectories) { return; }
 
@@ -18237,7 +18233,7 @@ var drawTrajectories = function (svg, scores, x, y) {
       }));
     });
 
-    var groups = svg
+    var groups = g
       .selectAll('.trajectory' + score.level)
       .data(data)
       .enter()
@@ -18346,7 +18342,7 @@ var drawTrajectories = function (svg, scores, x, y) {
     }
   });
 
-  svg
+  g
     .append('path')
     .attr('id', 'trajectory-highlight')
     .attr('fill', 'none')
@@ -18362,8 +18358,8 @@ var drawTrajectories = function (svg, scores, x, y) {
     // we only care if we need to turn things off
     if (el) { return; }
 
-    svg.selectAll('.trajectory').style('opacity', 0);
-    svg.select('#trajectory-highlight').interrupt().attr('stroke-opacity', 0);
+    g.selectAll('.trajectory').style('opacity', 0);
+    g.select('#trajectory-highlight').interrupt().attr('stroke-opacity', 0);
   }
 
   svg.trajectoryChanged = function (ref) {
@@ -18379,7 +18375,7 @@ var drawTrajectories = function (svg, scores, x, y) {
     var traj = d3.select('#test' + d.level + '_trajectory_' + pct);
 
     // only d actually needs to be set here, the rest are only for live editing
-    svg
+    g
       .select('#trajectory-highlight')
       .attr('d', traj.select('path').attr('d'))
       .attr('stroke', window.dashes.color)
@@ -18391,6 +18387,10 @@ var drawTrajectories = function (svg, scores, x, y) {
 }
 
 var drawScores = function (svg, scores, x, y) {
+  var g = svg
+    .append('g')
+    .attr('class', 'scores');
+
   function turnOn (el, d) {
     var c = d3.select(el);
 
@@ -18458,7 +18458,7 @@ var drawScores = function (svg, scores, x, y) {
     .append('div')
     .attr('class', 'tooltip');
 
-  svg
+  g
     .selectAll('circle')
     .data(scores)
     .enter()
@@ -18505,6 +18505,125 @@ var drawScores = function (svg, scores, x, y) {
       });
 }
 
+var drawAxis = function (svg, data, x, y, width, height, margin, ratio) {
+  if ( ratio === void 0 ) ratio = 1;
+
+  var cut_scores = data.cuts;
+
+  var g = svg
+    .append('g')
+    .classed('axis', true);
+
+  // create an X axis using the original length of cut_scores as number of ticks
+  var xAxis = d3.axisBottom(x)
+    .ticks(cut_scores.length - 2)
+    .tickFormat(function (d, i) {
+      // use the test field for tick labels
+      // +1 skips the fake data point we created at the front of the array
+      var realCut = cut_scores[i + 1];
+      if (realCut.year) { return ((realCut.test) + " / " + (realCut.year)); }
+      return ("" + (realCut.test));
+    })
+    .tickSizeOuter(0);
+
+  // draw X axis below chart
+  var xAxisG = g
+    .append('g')
+    .attr('transform', ("translate(0, " + height + ")"));
+
+  xAxisG.append('g')
+    .attr('class', 'x-axis')
+    .append('rect')
+    .attr('width', width * ratio)
+    .attr('height', margin.bottom * 2)
+    .style('fill', 'white')
+
+  xAxisG.append('g')
+    .attr('class', 'x-axis')
+    .call(xAxis)
+    .selectAll('.domain')
+    .style('stroke', 'white');
+
+  // Y axes, for debugging only
+  // g.append('g').call(d3.axisLeft(y));
+  // g.append('g').attr('transform', `translate(${width}, 0)`).call(d3.axisRight(y));
+}
+
+var configureZoom = function (container, w, h, margin) {
+  function zoomed() {
+    var ref = d3.event.transform;
+    var x = ref.x;
+    var y = ref.y;
+    var k = ref.k;
+    var svg = d3.select('.zoom-target');
+    var w = svg.attr('width');
+    var cw = w * k;
+    var h = svg.attr('height');
+    var ch = h * k;
+
+    // we have to calculate how much everything has been scaled by the viewBox
+    // because it affects how we calculate the proper translation amounts
+    var vbRatio = svg.attr('height') / svg.attr('viewBox').split(' ').pop();
+
+    // Math.min(0, ...) prevents panning things too far right
+    // (w - cw) and (h - cw) give us the amount the width and height
+    // have grown based on the event's scale property (k)
+    // those values have to be divided by the viewBox scaling
+    // to get accurate values, because the viewBox scaling has already been applied
+    // the Math.max() comparison prevents things from being panned too far left
+    var tx = Math.min(0, Math.max(x, (w - cw) / vbRatio));
+    var ty = Math.min(0, Math.max(y, (h - ch) / vbRatio));
+
+    // d3.event.transform is somewhat persistent, so we have to overwrite
+    // its values to ensure they match what we've calculated
+    // otherwise, dragging after our code has limited the panning
+    // will keep growing the values, resulting in having to 
+    // "pan back" even though nothing is moving
+    d3.event.transform.x = tx;
+    d3.event.transform.y = ty;
+
+    // construct our custom transform string
+    var trans = "translate(" + tx + "," + ty + ") scale(" + k + ")";
+
+    // some of the zoom targets are different
+    // if the chart has an assessment change (split)
+    if (d3.select('.cutsContainer').size()) {
+      d3.select('.cutsContainer').attr('transform', trans);
+      d3.select('.growthCutsContainer').attr('transform', trans);
+      d3.select('.axes').attr('transform', ("translate(" + tx + ",0) scale(" + k + ")"));
+    } else {
+      d3.selectAll('.cuts').attr('transform', trans);
+      d3.selectAll('.growth_cuts').attr('transform', trans);
+      // we want the axis to remain pinned to the bottom
+      d3.selectAll('.x-axis').attr('transform', ("translate(" + tx + ",0) scale(" + k + ")"));
+    }
+
+    d3.select('.lines').attr('transform', trans);
+    d3.select('.trajectories').attr('transform', trans);
+    d3.select('.scores').attr('transform', trans);
+  }
+
+  // basic zoom that prevents zooming out beyond initial size
+  // and zooming in more than 3X
+  var zoom = d3.zoom()
+    .scaleExtent([1, 3])
+    .on('zoom', zoomed);
+
+  // attach zoom handler to root svg
+  container.select('svg').classed('zoom-target', true).call(zoom);
+
+  // add button for clearing zoom transforms
+  d3.select('#uiContainer')
+    .append('button')
+    .text('Reset Zoom')
+    .on('click', function () {
+      d3.select('.zoom-target')
+        .transition()
+        .duration(750)
+        .call(zoom.transform, d3.zoomIdentity);
+    });
+}
+
 window.dashes = {
   color: 'white',
   width: 2,
@@ -18545,6 +18664,8 @@ var cutscores = function (selector, args) {
 
   var container = d3.select(selector).style('position', 'relative');
   var params = getDataParameters(selector, args);
+  // one SVG holds all the layers, implemented inside their own g elements
+  var g = createSVG(container);
 
   loadData(params)
     .then(function (ref) {
@@ -18558,16 +18679,14 @@ var cutscores = function (selector, args) {
         var ref$1 = createCutScales(cutscoreSet.cuts, width, height);
         var x = ref$1.x;
         var y = ref$1.y;
-        var position = params.showGrowth ? 'absolute' : 'relative';
-        // if the cuts are the only thing we're rendering
-        // their svg tag needs to be relatively positioned
-        // to ensure the chart is included in the page layout
-        createSVG(container, position)
-          .call(drawBackground, cutscoreSet, x, y, height);
+        // draw normal cutscores layer
+        g.call(drawBackground, cutscoreSet, x, y, height);
+        // draw growth cutscores layer if requested
         if (params.showGrowth) {
-          createSVG(container)
-            .call(drawBackground, cutscoreSet, x, y, height, true);
+          g.call(drawBackground, cutscoreSet, x, y, height, true);
         }
+        // draw axis on its own layer so it can mask during zoom
+        g.call(drawAxis, cutscoreSet, x, y, width, height, margin);
       }
 
       return {stateData: stateData, studentData: studentData};
@@ -18580,6 +18699,9 @@ var cutscores = function (selector, args) {
 
       var allCuts = _.flatten(_.map(stateData, 'cuts'));
       var subjectData = studentData.data.subjects[stateData[0].subject];
+      var cutsContainer;
+      var growthCutsContainer;
+      var axisContainer;
 
       stateData.forEach(function (cutscoreSet, i) {
         // get the ratio before modifying the cuts
@@ -18600,26 +18722,51 @@ var cutscores = function (selector, args) {
         if (ratio < 1) {
           x.range([0, w * ratio - margin.left - margin.right]);
 
-          var splitWrapper = container
-            .append('div')
-            .attr('id', Date.now())
-            .style('width', ratio * 100 + '%')
-            .style('display', 'inline-block')
-            .style('position', 'absolute')
-            .style(i % 2 ? 'right' : 'left', 0);
+          // draw normal cutscores layer
+          if (!cutsContainer) { cutsContainer = g.append('g').attr('class', 'cutsContainer'); }
+          cutsContainer.call(drawBackground, cutscoreSet, x, y, height);
 
-          createSVG(splitWrapper, 'absolute', ratio)
-            .call(drawBackground, cutscoreSet, x, y, height);
+          // draw growth cutscores layer if requested
           if (params.showGrowth) {
-            createSVG(splitWrapper, 'absolute', ratio)
-              .call(drawBackground, cutscoreSet, x, y, height, true);
+            if (!growthCutsContainer) {
+              growthCutsContainer = g.append('g').attr('class', 'growthCutsContainer');
+            }
+            growthCutsContainer.call(drawBackground, cutscoreSet, x, y, height, true);
           }
+
+          // draw axis on its own layer so it can mask during zoom
+          if (!axisContainer) { axisContainer = g.append('g').attr('class', 'axes'); }
+          axisContainer.call(drawAxis, cutscoreSet, x, y, width, height, margin, ratio);
+
+          // if there was an assessment change (split)
+          // we have to position the cuts and axis 
+          // that go on the right side
+          if (i > 0) {
+            var trans = "translate(" + (width * (1 - ratio)) + ", 0)";
+
+            cutsContainer
+              .select('.cuts:last-child')
+              .attr('transform', trans);
+            
+            if (params.showGrowth) {
+              growthCutsContainer
+                .select('.cuts:last-child')
+                .attr('transform', trans);
+            }
+
+            g.selectAll('.axis')
+              .attr('transform', function (d, j) { return j ? trans : null; });
+          }
+            
         } else {
-          createSVG(container).call(drawBackground, cutscoreSet, x, y, height);
+          // draw normal cutscores layer
+          g.call(drawBackground, cutscoreSet, x, y, height);
+          // draw growth cutscores layer if requested
           if (params.showGrowth) {
-            createSVG(container)
-              .call(drawBackground, cutscoreSet, x, y, height, true);
+            g.call(drawBackground, cutscoreSet, x, y, height, true);
           }
+          // draw axis on its own layer so it can mask during zoom
+          g.call(drawAxis, cutscoreSet, x, y, width, height, margin);
         }
       });
 
@@ -18641,17 +18788,23 @@ var cutscores = function (selector, args) {
           .style('position', 'relative')
           .style('pointer-events', 'none');
 
-      // create a new, absolutely positioned SVG to house the growth lines
-      createSVG(layer).call(drawGrowthLines, scores, x, y);
-      // create a new, absolutely positioned SVG to house the trajectory lines
-      var trajectories = createSVG(layer).call(drawTrajectories, scores, x, y);
-      // create a new, absolutely positioned SVG to house the score bubbles
-      createSVG(layer)
-        .call(drawScores, scores, x, y)
+      // draw the growth lines on their own layer
+      g.call(drawGrowthLines, scores, x, y);
+      // draw the trajectory lines on their own layer
+      var trajectories = g.call(drawTrajectories, scores, x, y);
+      // draw the score bubbles on their own layer
+      g.call(drawScores, scores, x, y)
         .on('scoreSelected trajectoryChanged', function () {
           trajectories[d3.event.type](d3.event.detail);
         });
 
+    })
+    .then(function () {
+      // move the axes to the highest layer in the SVG
+      // so they can mask the other layers when zooming
+      d3.selectAll('.axis, .axes').raise();
+      // create zoom handling
+      configureZoom(container, w, h, margin);
     })
     .then(function () {
       if (window['pym']) {

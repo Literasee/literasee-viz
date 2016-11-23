@@ -19,6 +19,10 @@ export default function (svg, scores, x, y) {
     .y(d => y(d.score))
     .curve(d3.curveCatmullRom.alpha(0.5));
 
+  const g = svg
+    .append('g')
+    .attr('class', 'trajectories');
+
   scores.forEach(score => {
     if (!score.trajectories) return;
 
@@ -34,7 +38,7 @@ export default function (svg, scores, x, y) {
       }));
     });
 
-    const groups = svg
+    const groups = g
       .selectAll('.trajectory' + score.level)
       .data(data)
       .enter()
@@ -143,7 +147,7 @@ export default function (svg, scores, x, y) {
     }
   });
 
-  svg
+  g
     .append('path')
     .attr('id', 'trajectory-highlight')
     .attr('fill', 'none')
@@ -156,8 +160,8 @@ export default function (svg, scores, x, y) {
     // we only care if we need to turn things off
     if (el) return;
 
-    svg.selectAll('.trajectory').style('opacity', 0);
-    svg.select('#trajectory-highlight').interrupt().attr('stroke-opacity', 0);
+    g.selectAll('.trajectory').style('opacity', 0);
+    g.select('#trajectory-highlight').interrupt().attr('stroke-opacity', 0);
   }
 
   svg.trajectoryChanged = function ({d, pct}) {
@@ -170,7 +174,7 @@ export default function (svg, scores, x, y) {
     const traj = d3.select('#test' + d.level + '_trajectory_' + pct);
 
     // only d actually needs to be set here, the rest are only for live editing
-    svg
+    g
       .select('#trajectory-highlight')
       .attr('d', traj.select('path').attr('d'))
       .attr('stroke', window.dashes.color)
