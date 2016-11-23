@@ -5,6 +5,8 @@ export default function (svg, data, x, y, width, height, margin, ratio = 1) {
     .append('g')
     .classed('axis', true);
 
+  if (ratio === 1) g.attr('transform', `translate(0, ${height})`)
+
   // create an X axis using the original length of cut_scores as number of ticks
   var xAxis = d3.axisBottom(x)
     .ticks(cut_scores.length - 2)
@@ -17,19 +19,14 @@ export default function (svg, data, x, y, width, height, margin, ratio = 1) {
     })
     .tickSizeOuter(0);
 
-  // draw X axis below chart
-  var xAxisG = g
-    .append('g')
-    .attr('transform', `translate(0, ${height})`);
-
-  xAxisG.append('g')
+  g.append('g')
     .attr('class', 'x-axis')
     .append('rect')
     .attr('width', width * ratio)
     .attr('height', margin.bottom * 2)
     .style('fill', 'white')
 
-  xAxisG.append('g')
+  g.append('g')
     .attr('class', 'x-axis')
     .call(xAxis)
     .selectAll('.domain')

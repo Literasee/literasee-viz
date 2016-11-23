@@ -113,7 +113,11 @@ export default function (selector = 'body', args) {
           }
 
           // draw axis on its own layer so it can mask during zoom
-          if (!axisContainer) axisContainer = g.append('g').attr('class', 'axes');
+          if (!axisContainer) {
+            axisContainer = g.append('g')
+              .attr('class', 'axes')
+              .attr('transform', `translate(0, ${height})`);
+          }
           axisContainer.call(drawAxis, cutscoreSet, x, y, width, height, margin, ratio);
 
           // if there was an assessment change (split)
@@ -180,7 +184,7 @@ export default function (selector = 'body', args) {
       // so they can mask the other layers when zooming
       d3.selectAll('.axis, .axes').raise();
       // create zoom handling
-      configureZoom(container, w, h, margin);
+      configureZoom(container, w, h, height);
     })
     .then(() => {
       if (window['pym']) {

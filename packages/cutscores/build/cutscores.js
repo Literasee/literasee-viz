@@ -18514,6 +18514,8 @@ var drawAxis = function (svg, data, x, y, width, height, margin, ratio) {
     .append('g')
     .classed('axis', true);
 
+  if (ratio === 1) { g.attr('transform', ("translate(0, " + height + ")")) }
+
   // create an X axis using the original length of cut_scores as number of ticks
   var xAxis = d3.axisBottom(x)
     .ticks(cut_scores.length - 2)
@@ -18526,19 +18528,14 @@ var drawAxis = function (svg, data, x, y, width, height, margin, ratio) {
     })
     .tickSizeOuter(0);
 
-  // draw X axis below chart
-  var xAxisG = g
-    .append('g')
-    .attr('transform', ("translate(0, " + height + ")"));
-
-  xAxisG.append('g')
+  g.append('g')
     .attr('class', 'x-axis')
     .append('rect')
     .attr('width', width * ratio)
     .attr('height', margin.bottom * 2)
     .style('fill', 'white')
 
-  xAxisG.append('g')
+  g.append('g')
     .attr('class', 'x-axis')
     .call(xAxis)
     .selectAll('.domain')
@@ -18549,7 +18546,7 @@ var drawAxis = function (svg, data, x, y, width, height, margin, ratio) {
   // g.append('g').attr('transform', `translate(${width}, 0)`).call(d3.axisRight(y));
 }
 
-var configureZoom = function (container, w, h, margin) {
+var configureZoom = function (container, w, h, height) {
   function zoomed() {
     var tooltip = d3.select('.tooltip');
     if (tooltip.size() && tooltip.style('visibility') === 'visible') { return; }
@@ -18593,7 +18590,7 @@ var configureZoom = function (container, w, h, margin) {
     if (d3.select('.cutsContainer').size()) {
       d3.select('.cutsContainer').attr('transform', trans);
       d3.select('.growthCutsContainer').attr('transform', trans);
-      d3.select('.axes').attr('transform', ("translate(" + tx + ",0) scale(" + k + ")"));
+      d3.select('.axes').attr('transform', ("translate(" + tx + "," + height + ") scale(" + k + ")"));
     } else {
       d3.selectAll('.cuts').attr('transform', trans);
       d3.selectAll('.growth_cuts').attr('transform', trans);
@@ -18738,7 +18735,11 @@ var cutscores = function (selector, args) {
           }
 
           // draw axis on its own layer so it can mask during zoom
-          if (!axisContainer) { axisContainer = g.append('g').attr('class', 'axes'); }
+          if (!axisContainer) {
+            axisContainer = g.append('g')
+              .attr('class', 'axes')
+              .attr('transform', ("translate(0, " + height + ")"));
+          }
           axisContainer.call(drawAxis, cutscoreSet, x, y, width, height, margin, ratio);
 
           // if there was an assessment change (split)
@@ -18807,7 +18808,7 @@ var cutscores = function (selector, args) {
       // so they can mask the other layers when zooming
       d3.selectAll('.axis, .axes').raise();
       // create zoom handling
-      configureZoom(container, w, h, margin);
+      configureZoom(container, w, h, height);
     })
     .then(function () {
       if (window['pym']) {

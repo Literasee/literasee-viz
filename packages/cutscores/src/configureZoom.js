@@ -1,4 +1,4 @@
-export default function (container, w, h, margin) {
+export default function (container, w, h, height) {
   function zoomed() {
     const tooltip = d3.select('.tooltip');
     if (tooltip.size() && tooltip.style('visibility') === 'visible') return;
@@ -39,7 +39,7 @@ export default function (container, w, h, margin) {
     if (d3.select('.cutsContainer').size()) {
       d3.select('.cutsContainer').attr('transform', trans);
       d3.select('.growthCutsContainer').attr('transform', trans);
-      d3.select('.axes').attr('transform', `translate(${tx},0) scale(${k})`);
+      d3.select('.axes').attr('transform', `translate(${tx},${height}) scale(${k})`);
     } else {
       d3.selectAll('.cuts').attr('transform', trans);
       d3.selectAll('.growth_cuts').attr('transform', trans);
