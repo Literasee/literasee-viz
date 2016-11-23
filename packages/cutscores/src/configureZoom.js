@@ -1,6 +1,7 @@
 export default function (container, w, h, margin) {
   function zoomed() {
-    if (d3.select('.tooltip').style('visibility') === 'visible') return;
+    const tooltip = d3.select('.tooltip');
+    if (tooltip.size() && tooltip.style('visibility') === 'visible') return;
 
     const { x, y, k } = d3.event.transform;
     const svg = d3.select('.zoom-target');

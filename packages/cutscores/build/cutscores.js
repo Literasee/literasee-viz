@@ -18551,7 +18551,8 @@ var drawAxis = function (svg, data, x, y, width, height, margin, ratio) {
 
 var configureZoom = function (container, w, h, margin) {
   function zoomed() {
-    if (d3.select('.tooltip').style('visibility') === 'visible') { return; }
+    var tooltip = d3.select('.tooltip');
+    if (tooltip.size() && tooltip.style('visibility') === 'visible') { return; }
 
     var ref = d3.event.transform;
     var x = ref.x;
