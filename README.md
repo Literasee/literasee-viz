@@ -67,3 +67,15 @@ At the root of the repository is `card.html`, a self contained page intended for
 ```
 
 Here we see the four parameters supported by cards: `title`, `desc`, `img`, and `repo`. The `img` parameter is optional. As shown above, the iframe should specify its `width`, `height`, and `frameborder`, unless the host site will account for styling in another manner.
+
+# Status as of 11/28/2016
+
+### Availability at data.literasee.io
+
+There are a few things involved in making this repository's contents available at https://viz.literasee.io
+
+The `literasee.io` domain (as well as `literasee.org`) is registered with [iwantmyname.com](iwantmyname.com). On that site, the domain's DNS is configured to point to CloudFlare. This is done because CloudFlare offers free SSL (HTTPS) and better subdomain management.
+
+On CloudFlare, we manage the various `literasee.io` subdomains. Some point to Heroku for the Literasee editor and viewer apps, but the `viz` subdomain is pointed to `literasee.github.io`, the automatically generated domain for the Literasee organization on GitHub.
+
+The repository itself is then configured to enable GitHub Pages and use the `master` branch as the source. The `CNAME` file in the repository root tells GitHub that requests for `viz.literasee.io` should be treated as requests for this repository.
