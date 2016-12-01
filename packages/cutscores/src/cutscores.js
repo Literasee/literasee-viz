@@ -1,6 +1,5 @@
-import { default as getDataParameters } from './getDataParameters';
-import { default as loadData } from './loadData';
-
+import getDataParameters from './getDataParameters';
+import loadData from './loadData';
 import mergeCutsAndScores from './mergeCutsAndScores';
 
 import chartInit from './chartInit';
@@ -13,6 +12,7 @@ import drawScores from './drawScores';
 import drawAxis from './drawAxis';
 import configureZoom from './configureZoom';
 
+// these dimensions will only control aspect ratio since charts are responsive
 const w = 800;
 const h = 400;
 const margin = { top: 0, right: 0, bottom: 30, left: 0 };
@@ -22,23 +22,6 @@ const {
   height,
   createSVG
 } = chartInit(w, h, margin);
-
-function addGrowthCutsToggle () {
-  d3.select('#uiContainer')
-    .append('button')
-    .text('Hide Growth Cuts')
-    .on('click', function () {
-      var isHidden = d3
-        .select('.growth_cuts')
-        .style('display') === 'none';
-
-      d3.select(this)
-        .text(isHidden ? 'Hide Growth Cuts' : 'Show Growth Cuts');
-
-      d3.selectAll('.growth_cuts')
-        .style('display', isHidden ? 'block' : 'none');
-    });
-}
 
 export default function (selector = 'body', args) {
   const container = d3.select(selector).style('position', 'relative');
@@ -153,12 +136,6 @@ export default function (selector = 'body', args) {
       })
       const { x, y } = createCutScales(allCuts, width, height);
 
-      var layer = container
-        .append('div')
-          .attr('id', Date.now())
-          .style('position', 'relative')
-          .style('pointer-events', 'none');
-
       // draw the growth lines on their own layer
       g.call(drawGrowthLines, scores, x, y);
       // draw the trajectory lines on their own layer
@@ -183,7 +160,21 @@ export default function (selector = 'body', args) {
         window.pymChild.sendHeight();
       }
       if (params.showGrowth) {
-        addGrowthCutsToggle();
+        // add button for toggling growth cuts layer
+        d3.select('#uiContainer')
+          .append('button')
+          .text('Hide Growth Cuts')
+          .on('click', function () {
+            var isHidden = d3
+              .select('.growth_cuts')
+              .style('display') === 'none';
+
+            d3.select(this)
+              .text(isHidden ? 'Hide Growth Cuts' : 'Show Growth Cuts');
+
+            d3.selectAll('.growth_cuts')
+              .style('display', isHidden ? 'block' : 'none');
+          });
       }
     });
 }

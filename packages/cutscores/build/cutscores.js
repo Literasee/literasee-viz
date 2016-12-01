@@ -17974,6 +17974,10 @@ function addYears (cuts) {
   });
 }
 
+// this function is responsible for creating a correct, contiguous
+// list of "grades" or "tests"
+// must account for missing, skipped, and repeated years
+// and ensure the list runs from min and max as defined by the state
 var mergeCutsAndScores = function (cuts, scores) {
   var cutsWithRepeats = createCutRepeats(cuts, scores);
   var results = mergeScores(cutsWithRepeats, scores);
@@ -17982,6 +17986,10 @@ var mergeCutsAndScores = function (cuts, scores) {
   return results;
 }
 
+// this file encapsulates use of the D3 margin convention
+// createSVG was initially used extensively in cutscores.js
+// but isn't anymore due to a refactor
+// as a result, this file could probably be merged into cutscores.js
 var chartInit = function (w, h, margin) {
   return {
     width: w - margin.left - margin.right,
@@ -18244,6 +18252,7 @@ var drawTrajectories = function (svg, scores, x, y) {
       }));
     });
 
+    // create a group for all trajectory lines by default but hide them
     var groups = g
       .selectAll('.trajectory' + score.level)
       .data(data)
@@ -18253,6 +18262,7 @@ var drawTrajectories = function (svg, scores, x, y) {
       .attr('id', function (d) { return 'test' + score.level + '_trajectory_' + d[0].percentile; })
       .style('opacity', 0);
 
+    // create the actual lines
     groups
       .append('path')
       .attr('class', 'trajectory' + score.level)
@@ -18263,6 +18273,7 @@ var drawTrajectories = function (svg, scores, x, y) {
       .style('stroke-width', 2)
       .style('fill', 'none');
 
+    // if present, create target score bubbles (catch up, keep up, etc)
     if (score.targets) {
       var targets = _.map(score.targets, 'percentile');
       var trajScores = groups.selectAll('.trajectory-score')
@@ -18297,6 +18308,7 @@ var drawTrajectories = function (svg, scores, x, y) {
     var midpointLevel;
     var midpointScore;
 
+    // create trajectory line labels
     var trajectoryLabel = groups
       .append('text')
       .each(function (d) {
@@ -18339,6 +18351,7 @@ var drawTrajectories = function (svg, scores, x, y) {
         return pct + suffix + ' percentile';
       });
 
+    // add target label
     if (score.targets) {
       trajectoryLabel
         .append('tspan')
@@ -18373,6 +18386,8 @@ var drawTrajectories = function (svg, scores, x, y) {
     g.select('#trajectory-highlight').interrupt().attr('stroke-opacity', 0);
   }
 
+  // when the trajectory changes turn all of them invisible
+  // and then turn on the appropriate new one
   svg.trajectoryChanged = function (ref) {
     var d = ref.d;
     var pct = ref.pct;
@@ -18408,7 +18423,7 @@ var drawScores = function (svg, scores, x, y) {
     var scrollId;
     var diff = 0;
 
-    // scroll and drag listener
+    // scroll and drag listener with snapping to targets
     function changeTrajectory () {
       if (d3.event.type === 'wheel') { d3.event.preventDefault(); }
 
@@ -18554,6 +18569,8 @@ var drawAxis = function (svg, data, x, y, width, height, margin, ratio) {
 
 var configureZoom = function (container, w, h, height) {
   function zoomed() {
+    // ignore scrolls while a score is being hovered
+    // since scrolling while hovered is used for changing displayed trajectory
     var tooltip = d3.select('.tooltip');
     if (tooltip.size() && tooltip.style('visibility') === 'visible') { return; }
 
@@ -18630,6 +18647,7 @@ var configureZoom = function (container, w, h, height) {
     });
 }
 
+// these dimensions will only control aspect ratio since charts are responsive
 var w = 800;
 var h = 400;
 var margin = { top: 0, right: 0, bottom: 30, left: 0 };
@@ -18638,23 +18656,6 @@ var ref = chartInit(w, h, margin);
 var width = ref.width;
 var height = ref.height;
 var createSVG = ref.createSVG;
-
-function addGrowthCutsToggle () {
-  d3.select('#uiContainer')
-    .append('button')
-    .text('Hide Growth Cuts')
-    .on('click', function () {
-      var isHidden = d3
-        .select('.growth_cuts')
-        .style('display') === 'none';
-
-      d3.select(this)
-        .text(isHidden ? 'Hide Growth Cuts' : 'Show Growth Cuts');
-
-      d3.selectAll('.growth_cuts')
-        .style('display', isHidden ? 'block' : 'none');
-    });
-}
 
 var cutscores = function (selector, args) {
   if ( selector === void 0 ) selector = 'body';
@@ -18783,12 +18784,6 @@ var cutscores = function (selector, args) {
       var x = ref$1.x;
       var y = ref$1.y;
 
-      var layer = container
-        .append('div')
-          .attr('id', Date.now())
-          .style('position', 'relative')
-          .style('pointer-events', 'none');
-
       // draw the growth lines on their own layer
       g.call(drawGrowthLines, scores, x, y);
       // draw the trajectory lines on their own layer
@@ -18813,7 +18808,21 @@ var cutscores = function (selector, args) {
         window.pymChild.sendHeight();
       }
       if (params.showGrowth) {
-        addGrowthCutsToggle();
+        // add button for toggling growth cuts layer
+        d3.select('#uiContainer')
+          .append('button')
+          .text('Hide Growth Cuts')
+          .on('click', function () {
+            var isHidden = d3
+              .select('.growth_cuts')
+              .style('display') === 'none';
+
+            d3.select(this)
+              .text(isHidden ? 'Hide Growth Cuts' : 'Show Growth Cuts');
+
+            d3.selectAll('.growth_cuts')
+              .style('display', isHidden ? 'block' : 'none');
+          });
       }
     });
 }

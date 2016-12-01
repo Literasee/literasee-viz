@@ -1,5 +1,7 @@
 export default function (container, w, h, height) {
   function zoomed() {
+    // ignore scrolls while a score is being hovered
+    // since scrolling while hovered is used for changing displayed trajectory
     const tooltip = d3.select('.tooltip');
     if (tooltip.size() && tooltip.style('visibility') === 'visible') return;
 

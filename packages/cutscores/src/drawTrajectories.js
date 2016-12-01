@@ -47,6 +47,7 @@ export default function (svg, scores, x, y) {
       }));
     });
 
+    // create a group for all trajectory lines by default but hide them
     const groups = g
       .selectAll('.trajectory' + score.level)
       .data(data)
@@ -56,6 +57,7 @@ export default function (svg, scores, x, y) {
       .attr('id', d => 'test' + score.level + '_trajectory_' + d[0].percentile)
       .style('opacity', 0);
 
+    // create the actual lines
     groups
       .append('path')
       .attr('class', 'trajectory' + score.level)
@@ -66,6 +68,7 @@ export default function (svg, scores, x, y) {
       .style('stroke-width', 2)
       .style('fill', 'none');
 
+    // if present, create target score bubbles (catch up, keep up, etc)
     if (score.targets) {
       const targets = _.map(score.targets, 'percentile');
       const trajScores = groups.selectAll('.trajectory-score')
@@ -100,6 +103,7 @@ export default function (svg, scores, x, y) {
     var midpointLevel;
     var midpointScore;
 
+    // create trajectory line labels
     const trajectoryLabel = groups
       .append('text')
       .each(d => {
@@ -142,6 +146,7 @@ export default function (svg, scores, x, y) {
         return pct + suffix + ' percentile';
       });
 
+    // add target label
     if (score.targets) {
       trajectoryLabel
         .append('tspan')
@@ -173,6 +178,8 @@ export default function (svg, scores, x, y) {
     g.select('#trajectory-highlight').interrupt().attr('stroke-opacity', 0);
   }
 
+  // when the trajectory changes turn all of them invisible
+  // and then turn on the appropriate new one
   svg.trajectoryChanged = function ({d, pct}) {
     d3.selectAll('.trajectory')
       .style('opacity', 0);

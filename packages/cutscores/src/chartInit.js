@@ -1,5 +1,9 @@
 import { responsivefy } from './utils';
 
+// this file encapsulates use of the D3 margin convention
+// createSVG was initially used extensively in cutscores.js
+// but isn't anymore due to a refactor
+// as a result, this file could probably be merged into cutscores.js
 export default function (w, h, margin) {
   return {
     width: w - margin.left - margin.right,

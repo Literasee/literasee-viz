@@ -14,7 +14,7 @@ export default function (svg, scores, x, y) {
     let scrollId;
     let diff = 0;
 
-    // scroll and drag listener
+    // scroll and drag listener with snapping to targets
     function changeTrajectory () {
       if (d3.event.type === 'wheel') d3.event.preventDefault();
 

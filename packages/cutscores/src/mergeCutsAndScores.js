@@ -88,6 +88,10 @@ function addYears (cuts) {
   });
 }
 
+// this function is responsible for creating a correct, contiguous
+// list of "grades" or "tests"
+// must account for missing, skipped, and repeated years
+// and ensure the list runs from min and max as defined by the state
 export default function (cuts, scores) {
   var cutsWithRepeats = createCutRepeats(cuts, scores);
   var results = mergeScores(cutsWithRepeats, scores);
