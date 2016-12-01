@@ -3,15 +3,6 @@ import { default as loadData } from './loadData';
 
 import mergeCutsAndScores from './mergeCutsAndScores';
 
-window.dashes = {
-  color: 'white',
-  width: 2,
-  opacity: 0.5,
-  dasharray: [3, 20],
-  dashoffset: 1000,
-  duration: 30000
-}
-
 import chartInit from './chartInit';
 import addGutterCuts from './addGutterCuts';
 import createCutScales from './createCutScales';

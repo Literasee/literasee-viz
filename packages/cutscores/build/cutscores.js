@@ -18022,8 +18022,10 @@ var addGutterCuts = function (cuts, gutter) {
   // right on the edges of our chart, we need to create some fake data entries
   // we will essentially find the min and max grades and create entries
   // slightly below and above them, respectively
-
   // 0 to 1, how much of a "grade" should the gutters represent?
+  // this function also adds `level` properties to each cut
+  // to assure there is a numeric field to use for ordering, etc.
+
   var n = cuts.length;
 
   return [].concat(
@@ -18195,12 +18197,21 @@ var drawGrowthLines = function (svg, scores, x, y) {
       });
 }
 
+var dashesConfig = {
+  color: 'white',
+  width: 2,
+  opacity: 0.5,
+  dasharray: [3, 20],
+  dashoffset: 1000,
+  duration: 30000
+}
+
 function animateDashes (sel) {
   sel
-    .attr('stroke-dashoffset', window.dashes.dashoffset)
-    .attr('stroke-opacity', window.dashes.opacity)
+    .attr('stroke-dashoffset', dashesConfig.dashoffset)
+    .attr('stroke-opacity', dashesConfig.opacity)
     .transition()
-      .duration(window.dashes.duration)
+      .duration(dashesConfig.duration)
       .ease(d3.easeLinear)
       .attr('stroke-dashoffset', 0)
       .on('end', function () {
@@ -18346,10 +18357,10 @@ var drawTrajectories = function (svg, scores, x, y) {
     .append('path')
     .attr('id', 'trajectory-highlight')
     .attr('fill', 'none')
-    .attr('stroke', window.dashes.color)
-    .attr('stroke-width', window.dashes.width)
-    .attr('stroke-opacity', window.dashes.opacity)
-    .attr('stroke-dasharray', window.dashes.dasharray);
+    .attr('stroke', dashesConfig.color)
+    .attr('stroke-width', dashesConfig.width)
+    .attr('stroke-opacity', dashesConfig.opacity)
+    .attr('stroke-dasharray', dashesConfig.dasharray);
 
   svg.scoreSelected = function (ref) {
     var el = ref.el;
@@ -18374,14 +18385,9 @@ var drawTrajectories = function (svg, scores, x, y) {
 
     var traj = d3.select('#test' + d.level + '_trajectory_' + pct);
 
-    // only d actually needs to be set here, the rest are only for live editing
     g
       .select('#trajectory-highlight')
       .attr('d', traj.select('path').attr('d'))
-      .attr('stroke', window.dashes.color)
-      .attr('stroke-width', window.dashes.width)
-      .attr('stroke-opacity', window.dashes.opacity)
-      .attr('stroke-dasharray', window.dashes.dasharray)
       .call(animateDashes);
   }
 }
@@ -18622,15 +18628,6 @@ var configureZoom = function (container, w, h, height) {
         .duration(750)
         .call(zoom.transform, d3.zoomIdentity);
     });
-}
-
-window.dashes = {
-  color: 'white',
-  width: 2,
-  opacity: 0.5,
-  dasharray: [3, 20],
-  dashoffset: 1000,
-  duration: 30000
 }
 
 var w = 800;

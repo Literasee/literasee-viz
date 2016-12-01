@@ -1,11 +1,20 @@
 import colorScale from './colorScale';
 
+const dashesConfig = {
+  color: 'white',
+  width: 2,
+  opacity: 0.5,
+  dasharray: [3, 20],
+  dashoffset: 1000,
+  duration: 30000
+}
+
 function animateDashes (sel) {
   sel
-    .attr('stroke-dashoffset', window.dashes.dashoffset)
-    .attr('stroke-opacity', window.dashes.opacity)
+    .attr('stroke-dashoffset', dashesConfig.dashoffset)
+    .attr('stroke-opacity', dashesConfig.opacity)
     .transition()
-      .duration(window.dashes.duration)
+      .duration(dashesConfig.duration)
       .ease(d3.easeLinear)
       .attr('stroke-dashoffset', 0)
       .on('end', function () {
@@ -151,10 +160,10 @@ export default function (svg, scores, x, y) {
     .append('path')
     .attr('id', 'trajectory-highlight')
     .attr('fill', 'none')
-    .attr('stroke', window.dashes.color)
-    .attr('stroke-width', window.dashes.width)
-    .attr('stroke-opacity', window.dashes.opacity)
-    .attr('stroke-dasharray', window.dashes.dasharray);
+    .attr('stroke', dashesConfig.color)
+    .attr('stroke-width', dashesConfig.width)
+    .attr('stroke-opacity', dashesConfig.opacity)
+    .attr('stroke-dasharray', dashesConfig.dasharray);
 
   svg.scoreSelected = function ({el, d}) {
     // we only care if we need to turn things off
@@ -173,14 +182,9 @@ export default function (svg, scores, x, y) {
 
     const traj = d3.select('#test' + d.level + '_trajectory_' + pct);
 
-    // only d actually needs to be set here, the rest are only for live editing
     g
       .select('#trajectory-highlight')
       .attr('d', traj.select('path').attr('d'))
-      .attr('stroke', window.dashes.color)
-      .attr('stroke-width', window.dashes.width)
-      .attr('stroke-opacity', window.dashes.opacity)
-      .attr('stroke-dasharray', window.dashes.dasharray)
       .call(animateDashes);
   }
 }
