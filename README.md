@@ -70,7 +70,7 @@ Here we see the four parameters supported by cards: `title`, `desc`, `img`, and 
 
 # Status as of 11/28/2016
 
-### Availability at data.literasee.io
+### Availability at viz.literasee.io
 
 There are a few things involved in making this repository's contents available at https://viz.literasee.io
 
