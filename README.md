@@ -8,10 +8,10 @@ To run a local server that mimics the live site, follow these steps:
 
 1. Clone the repository and navigate to its directory on your machine
 2. If you haven't done so previously, run `npm install`
-3. Add `127.0.0.1	local.literasee.io` to your `/etc/hosts` file to enable use of that custom domain
+3. Add `127.0.0.1	literasee.local` to your `/etc/hosts` file to enable use of that custom domain
 4. Start the local data server as described [here](https://github.com/Literasee/literasee-data)
 5. Run `npm start`
-6. [http://local.literasee.io:3001/](http://local.literasee.io:3001/) will open in your default browser
+6. [http://literasee.local:3001/](http://literasee.local:3001/) will open in your default browser
 7. To enable live reloading open a terminal in the `packages/cutscores` directory and run `npm start` to enable rebuilds on code changes
 
 # Repository structure
@@ -59,14 +59,14 @@ At the root of the repository is `card.html`, a self contained page intended for
 
 ```html
 <iframe
-    src="http://viz.literasee.io/card.html?title=A title to display&desc=A longer description&img=http://knowbetter.io/logo.png&repo=Literasee/Indiana"
+    src="http://viz.literasee.io/card.html?title=A title to display&desc=A longer description&img=http://knowbetter.io/logo.png&link=https://literasee.github.io/standard-error-of-measurement/"
     width="400"
     height="250"
     frameborder="0">
   </iframe>
 ```
 
-Here we see the four parameters supported by cards: `title`, `desc`, `img`, and `repo`. The `img` parameter is optional. As shown above, the iframe should specify its `width`, `height`, and `frameborder`, unless the host site will account for styling in another manner.
+Here we see the four parameters supported by cards: `title`, `desc`, `img`, and `link`. The `img` parameter is optional. As shown above, the iframe should specify its `width`, `height`, and `frameborder`, unless the host site will account for styling in another manner.
 
 # Status as of 11/28/2016
 
