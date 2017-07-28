@@ -9,6 +9,6 @@ module.exports = {
   notify: false,
   ghostMode: false,
   open: 'external',
-  host: 'local.literasee.io',
+  host: 'literasee.local',
   port: 3001
 };
